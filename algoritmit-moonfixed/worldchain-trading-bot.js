@@ -7,8 +7,7 @@ const readline = require('readline');
 const axios = require('axios');
 const chalk = require('chalk');
 const figlet = require('figlet');
-const UltraFastTradingEngine = require('./ultra-fast-trading-engine');
-const UltraFastDIPStrategy = require('./ultra-fast-dip-strategy');
+const AdvancedTradingEngine = require('./trading-engine');
 const TokenDiscoveryService = require('./token-discovery');
 const TelegramNotifications = require('./telegram-notifications');
 require('dotenv').config();
@@ -27,8 +26,7 @@ class WorldchainTradingBot {
         this.discoveredTokens = this.loadDiscoveredTokens();
         
         // Initialize ultra-fast modules
-        this.tradingEngine = new UltraFastTradingEngine(this.provider, this.config, this);
-        this.dipStrategy = new UltraFastDIPStrategy(this.tradingEngine, this.config);
+        this.tradingEngine = new AdvancedTradingEngine(this.provider, this.config);
         this.tokenDiscovery = new TokenDiscoveryService(this.provider, this.config);
         this.telegramNotifications = new TelegramNotifications(this.config);
         
@@ -3915,6 +3913,7 @@ class WorldchainTradingBot {
         console.log(chalk.cyan('16. 📊 Advanced Price Tracking'));
         console.log(chalk.cyan('17. ⛽ Gas Estimation'));
         console.log(chalk.cyan('18. 🌐 RPC Management'));
+        console.log(chalk.cyan('20. 🚀 OPUS 4.1 Ultra-Fast DIP Trading'));
         console.log(chalk.red('19. 🚪 Exit'));
         console.log(chalk.gray('─'.repeat(30)));
     }
@@ -5969,6 +5968,9 @@ class WorldchainTradingBot {
                     break;
                 case '18':
                     await this.rpcManagementMenu();
+                    break;
+                case '20':
+                    await this.opus41DIPTradingMenu();
                     break;
                 case '19':
                     console.log(chalk.green('\n👋 Thank you for using WorldChain Trading Bot!'));
@@ -9651,6 +9653,474 @@ class WorldchainTradingBot {
                 console.log(chalk.white(`     Updates: ${tokenStats.updateCount || 0}`));
             });
         }
+        
+        await this.getUserInput('\nPress Enter to continue...');
+    }
+
+    // OPUS 4.1: Ultra-Fast DIP Trading Methods
+    async executeUltraFastDIPBuy(wallet, tokenAddress, amountInWLD, maxSlippage = 20) {
+        console.log(chalk.cyan('🚀 OPUS 4.1: Executing Ultra-Fast DIP Buy...'));
+        console.log(chalk.white(`💰 Amount: ${amountInWLD} WLD`));
+        console.log(chalk.white(`🎯 Token: ${tokenAddress}`));
+        console.log(chalk.white(`⚡ Max Slippage: ${maxSlippage}%`));
+        
+        try {
+            const result = await this.tradingEngine.executeUltraFastDIPBuy(wallet, tokenAddress, amountInWLD, maxSlippage);
+            
+            if (result.success) {
+                console.log(chalk.green(`✅ Ultra-Fast DIP Buy Executed!`));
+                console.log(chalk.white(`📝 TX Hash: ${result.txHash}`));
+                console.log(chalk.white(`⚡ Execution Time: ${result.executionTime}ms`));
+                console.log(chalk.white(`⛽ Gas Price: ${result.gasPrice} gwei`));
+                console.log(chalk.white(`📊 Expected Output: ${result.expectedOutput} tokens`));
+                
+                // Send Telegram notification
+                if (this.telegramNotifications.isConfigured()) {
+                    await this.telegramNotifications.sendMessage(
+                        `🚀 OPUS 4.1 Ultra-Fast DIP Buy Executed!\n` +
+                        `💰 Amount: ${amountInWLD} WLD\n` +
+                        `🎯 Token: ${tokenAddress}\n` +
+                        `⚡ Execution Time: ${result.executionTime}ms\n` +
+                        `📝 TX: ${result.txHash}`
+                    );
+                }
+            } else {
+                console.log(chalk.red(`❌ Ultra-Fast DIP Buy Failed: ${result.error}`));
+            }
+            
+            return result;
+        } catch (error) {
+            console.log(chalk.red(`❌ Error: ${error.message}`));
+            return { success: false, error: error.message };
+        }
+    }
+
+    async startUltraFastDIPBot(wallet, tokenAddress, amountInWLD, dipThreshold = 5, interval = 1000) {
+        console.log(chalk.cyan('🚀 OPUS 4.1: Starting Ultra-Fast DIP Bot...'));
+        console.log(chalk.white(`🎯 Token: ${tokenAddress}`));
+        console.log(chalk.white(`💰 Amount: ${amountInWLD} WLD`));
+        console.log(chalk.white(`📉 Dip Threshold: ${dipThreshold}%`));
+        console.log(chalk.white(`⚡ Monitoring Interval: ${interval}ms`));
+        
+        try {
+            const stopBot = await this.tradingEngine.startUltraFastDIPBot(wallet, tokenAddress, amountInWLD, dipThreshold, interval);
+            
+            console.log(chalk.green(`✅ Ultra-Fast DIP Bot Started!`));
+            console.log(chalk.yellow(`💡 Press Ctrl+C to stop the bot`));
+            
+            // Send Telegram notification
+            if (this.telegramNotifications.isConfigured()) {
+                await this.telegramNotifications.sendMessage(
+                    `🚀 OPUS 4.1 Ultra-Fast DIP Bot Started!\n` +
+                    `🎯 Token: ${tokenAddress}\n` +
+                    `💰 Amount: ${amountInWLD} WLD\n` +
+                    `📉 Dip Threshold: ${dipThreshold}%\n` +
+                    `⚡ Monitoring: ${interval}ms`
+                );
+            }
+            
+            return stopBot;
+        } catch (error) {
+            console.log(chalk.red(`❌ Error starting DIP bot: ${error.message}`));
+            return null;
+        }
+    }
+
+    async executeBatchUltraFastDIPBuys(trades) {
+        console.log(chalk.cyan('🚀 OPUS 4.1: Executing Batch Ultra-Fast DIP Buys...'));
+        console.log(chalk.white(`📦 Total Trades: ${trades.length}`));
+        
+        try {
+            const result = await this.tradingEngine.executeBatchUltraFastDIPBuys(trades);
+            
+            console.log(chalk.green(`✅ Batch Ultra-Fast DIP Buys Completed!`));
+            console.log(chalk.white(`⚡ Total Time: ${result.totalTime}ms`));
+            console.log(chalk.white(`📊 Average Time: ${result.avgTime.toFixed(2)}ms`));
+            console.log(chalk.white(`✅ Successful: ${result.successCount}/${trades.length}`));
+            
+            // Send Telegram notification
+            if (this.telegramNotifications.isConfigured()) {
+                await this.telegramNotifications.sendMessage(
+                    `🚀 OPUS 4.1 Batch Ultra-Fast DIP Buys Completed!\n` +
+                    `📦 Total Trades: ${trades.length}\n` +
+                    `✅ Successful: ${result.successCount}\n` +
+                    `⚡ Total Time: ${result.totalTime}ms`
+                );
+            }
+            
+            return result;
+        } catch (error) {
+            console.log(chalk.red(`❌ Error: ${error.message}`));
+            return { success: false, error: error.message };
+        }
+    }
+
+    async detectAndExecuteDIP(wallet, tokenAddress, amountInWLD, dipThreshold = 5) {
+        console.log(chalk.cyan('🔍 OPUS 4.1: Detecting DIP...'));
+        console.log(chalk.white(`🎯 Token: ${tokenAddress}`));
+        console.log(chalk.white(`💰 Amount: ${amountInWLD} WLD`));
+        console.log(chalk.white(`📉 Dip Threshold: ${dipThreshold}%`));
+        
+        try {
+            const result = await this.tradingEngine.detectAndExecuteDIP(wallet, tokenAddress, amountInWLD, dipThreshold);
+            
+            if (result.dipDetected && result.success) {
+                console.log(chalk.green(`🎯 DIP Detected and Executed!`));
+                console.log(chalk.white(`📉 Price Drop: ${result.priceDrop.toFixed(2)}%`));
+                console.log(chalk.white(`📝 TX Hash: ${result.txHash}`));
+                console.log(chalk.white(`⚡ Total Time: ${result.totalTime}ms`));
+                
+                // Send Telegram notification
+                if (this.telegramNotifications.isConfigured()) {
+                    await this.telegramNotifications.sendMessage(
+                        `🎯 OPUS 4.1 DIP Detected and Executed!\n` +
+                        `📉 Price Drop: ${result.priceDrop.toFixed(2)}%\n` +
+                        `💰 Amount: ${amountInWLD} WLD\n` +
+                        `📝 TX: ${result.txHash}`
+                    );
+                }
+            } else if (result.dipDetected) {
+                console.log(chalk.yellow(`📉 DIP Detected (${result.priceDrop.toFixed(2)}%) but execution failed`));
+            } else {
+                console.log(chalk.blue(`📊 No DIP detected. Current price: ${result.currentPrice}`));
+            }
+            
+            return result;
+        } catch (error) {
+            console.log(chalk.red(`❌ Error: ${error.message}`));
+            return { success: false, error: error.message };
+        }
+    }
+
+    // OPUS 4.1: Ultra-Fast DIP Trading Menu
+    async opus41DIPTradingMenu() {
+        while (true) {
+            await this.displayHeader();
+            console.log(chalk.cyan('\n🚀 OPUS 4.1 ULTRA-FAST DIP TRADING'));
+            console.log(chalk.gray('═'.repeat(50)));
+            console.log(chalk.white('⚡ Ultra-fast DIP buying with zero delays'));
+            console.log(chalk.white('🎯 Maximum speed execution using OPUS 4.1'));
+            console.log(chalk.gray('═'.repeat(50)));
+            
+            console.log(chalk.cyan('1. 🚀 Execute Single Ultra-Fast DIP Buy'));
+            console.log(chalk.cyan('2. 📦 Execute Batch Ultra-Fast DIP Buys'));
+            console.log(chalk.cyan('3. 🤖 Start Ultra-Fast DIP Bot (Continuous)'));
+            console.log(chalk.cyan('4. 🔍 Detect and Execute DIP (One-time)'));
+            console.log(chalk.cyan('5. 📊 View OPUS 4.1 Performance Stats'));
+            console.log(chalk.cyan('6. ⚙️  Configure OPUS 4.1 Settings'));
+            console.log(chalk.red('7. ⬅️  Back to Main Menu'));
+            
+            const choice = await this.getUserInput('\nSelect option: ');
+            
+            switch (choice) {
+                case '1':
+                    await this.executeSingleUltraFastDIPBuy();
+                    break;
+                case '2':
+                    await this.executeBatchUltraFastDIPBuys();
+                    break;
+                case '3':
+                    await this.startUltraFastDIPBotMenu();
+                    break;
+                case '4':
+                    await this.detectAndExecuteDIPMenu();
+                    break;
+                case '5':
+                    await this.viewOPUS41PerformanceStats();
+                    break;
+                case '6':
+                    await this.configureOPUS41Settings();
+                    break;
+                case '7':
+                    return;
+                default:
+                    console.log(chalk.red('❌ Invalid option'));
+                    await this.sleep(1500);
+            }
+        }
+    }
+
+    async executeSingleUltraFastDIPBuy() {
+        console.clear();
+        console.log(chalk.cyan('🚀 OPUS 4.1: Single Ultra-Fast DIP Buy'));
+        console.log(chalk.gray('═'.repeat(40)));
+        
+        if (this.wallets.length === 0) {
+            console.log(chalk.red('❌ No wallets available. Please add a wallet first.'));
+            await this.getUserInput('\nPress Enter to continue...');
+            return;
+        }
+        
+        // Select wallet
+        console.log(chalk.white('\n📋 Available Wallets:'));
+        this.wallets.forEach((wallet, index) => {
+            console.log(chalk.white(`${index + 1}. ${wallet.name} (${wallet.address})`));
+        });
+        
+        const walletChoice = await this.getUserInput('\nSelect wallet (number): ');
+        const walletIndex = parseInt(walletChoice) - 1;
+        
+        if (walletIndex < 0 || walletIndex >= this.wallets.length) {
+            console.log(chalk.red('❌ Invalid wallet selection'));
+            await this.getUserInput('\nPress Enter to continue...');
+            return;
+        }
+        
+        const wallet = this.wallets[walletIndex];
+        
+        // Get token address
+        const tokenAddress = await this.getUserInput('\nEnter token address: ');
+        if (!tokenAddress || tokenAddress.length < 42) {
+            console.log(chalk.red('❌ Invalid token address'));
+            await this.getUserInput('\nPress Enter to continue...');
+            return;
+        }
+        
+        // Get amount
+        const amountInput = await this.getUserInput('\nEnter amount in WLD: ');
+        const amount = parseFloat(amountInput);
+        if (isNaN(amount) || amount <= 0) {
+            console.log(chalk.red('❌ Invalid amount'));
+            await this.getUserInput('\nPress Enter to continue...');
+            return;
+        }
+        
+        // Get slippage
+        const slippageInput = await this.getUserInput('\nEnter max slippage % (default 20): ');
+        const slippage = slippageInput ? parseFloat(slippageInput) : 20;
+        
+        console.log(chalk.yellow('\n🚀 Executing Ultra-Fast DIP Buy...'));
+        console.log(chalk.white(`💰 Amount: ${amount} WLD`));
+        console.log(chalk.white(`🎯 Token: ${tokenAddress}`));
+        console.log(chalk.white(`⚡ Max Slippage: ${slippage}%`));
+        
+        const result = await this.executeUltraFastDIPBuy(wallet, tokenAddress, amount, slippage);
+        
+        await this.getUserInput('\nPress Enter to continue...');
+    }
+
+    async executeBatchUltraFastDIPBuys() {
+        console.clear();
+        console.log(chalk.cyan('📦 OPUS 4.1: Batch Ultra-Fast DIP Buys'));
+        console.log(chalk.gray('═'.repeat(40)));
+        
+        if (this.wallets.length === 0) {
+            console.log(chalk.red('❌ No wallets available. Please add a wallet first.'));
+            await this.getUserInput('\nPress Enter to continue...');
+            return;
+        }
+        
+        // Select wallet
+        console.log(chalk.white('\n📋 Available Wallets:'));
+        this.wallets.forEach((wallet, index) => {
+            console.log(chalk.white(`${index + 1}. ${wallet.name} (${wallet.address})`));
+        });
+        
+        const walletChoice = await this.getUserInput('\nSelect wallet (number): ');
+        const walletIndex = parseInt(walletChoice) - 1;
+        
+        if (walletIndex < 0 || walletIndex >= this.wallets.length) {
+            console.log(chalk.red('❌ Invalid wallet selection'));
+            await this.getUserInput('\nPress Enter to continue...');
+            return;
+        }
+        
+        const wallet = this.wallets[walletIndex];
+        
+        // Get number of trades
+        const tradesInput = await this.getUserInput('\nEnter number of trades: ');
+        const numTrades = parseInt(tradesInput);
+        if (isNaN(numTrades) || numTrades <= 0 || numTrades > 10) {
+            console.log(chalk.red('❌ Invalid number of trades (max 10)'));
+            await this.getUserInput('\nPress Enter to continue...');
+            return;
+        }
+        
+        const trades = [];
+        
+        for (let i = 0; i < numTrades; i++) {
+            console.log(chalk.white(`\n📦 Trade ${i + 1}/${numTrades}:`));
+            
+            const tokenAddress = await this.getUserInput('Enter token address: ');
+            const amountInput = await this.getUserInput('Enter amount in WLD: ');
+            const amount = parseFloat(amountInput);
+            const slippageInput = await this.getUserInput('Enter max slippage % (default 20): ');
+            const slippage = slippageInput ? parseFloat(slippageInput) : 20;
+            
+            if (tokenAddress && !isNaN(amount) && amount > 0) {
+                trades.push({
+                    wallet,
+                    tokenAddress,
+                    amountInWLD: amount,
+                    maxSlippage: slippage
+                });
+            }
+        }
+        
+        if (trades.length === 0) {
+            console.log(chalk.red('❌ No valid trades to execute'));
+            await this.getUserInput('\nPress Enter to continue...');
+            return;
+        }
+        
+        console.log(chalk.yellow(`\n🚀 Executing ${trades.length} Ultra-Fast DIP Buys...`));
+        
+        const result = await this.executeBatchUltraFastDIPBuys(trades);
+        
+        await this.getUserInput('\nPress Enter to continue...');
+    }
+
+    async startUltraFastDIPBotMenu() {
+        console.clear();
+        console.log(chalk.cyan('🤖 OPUS 4.1: Ultra-Fast DIP Bot'));
+        console.log(chalk.gray('═'.repeat(40)));
+        
+        if (this.wallets.length === 0) {
+            console.log(chalk.red('❌ No wallets available. Please add a wallet first.'));
+            await this.getUserInput('\nPress Enter to continue...');
+            return;
+        }
+        
+        // Select wallet
+        console.log(chalk.white('\n📋 Available Wallets:'));
+        this.wallets.forEach((wallet, index) => {
+            console.log(chalk.white(`${index + 1}. ${wallet.name} (${wallet.address})`));
+        });
+        
+        const walletChoice = await this.getUserInput('\nSelect wallet (number): ');
+        const walletIndex = parseInt(walletChoice) - 1;
+        
+        if (walletIndex < 0 || walletIndex >= this.wallets.length) {
+            console.log(chalk.red('❌ Invalid wallet selection'));
+            await this.getUserInput('\nPress Enter to continue...');
+            return;
+        }
+        
+        const wallet = this.wallets[walletIndex];
+        
+        // Get parameters
+        const tokenAddress = await this.getUserInput('\nEnter token address to monitor: ');
+        const amountInput = await this.getUserInput('Enter amount in WLD per DIP: ');
+        const amount = parseFloat(amountInput);
+        const thresholdInput = await this.getUserInput('Enter DIP threshold % (default 5): ');
+        const threshold = thresholdInput ? parseFloat(thresholdInput) : 5;
+        const intervalInput = await this.getUserInput('Enter monitoring interval ms (default 1000): ');
+        const interval = intervalInput ? parseInt(intervalInput) : 1000;
+        
+        if (!tokenAddress || isNaN(amount) || amount <= 0) {
+            console.log(chalk.red('❌ Invalid parameters'));
+            await this.getUserInput('\nPress Enter to continue...');
+            return;
+        }
+        
+        console.log(chalk.yellow('\n🤖 Starting Ultra-Fast DIP Bot...'));
+        console.log(chalk.white(`🎯 Token: ${tokenAddress}`));
+        console.log(chalk.white(`💰 Amount: ${amount} WLD`));
+        console.log(chalk.white(`📉 Threshold: ${threshold}%`));
+        console.log(chalk.white(`⚡ Interval: ${interval}ms`));
+        
+        const stopBot = await this.startUltraFastDIPBot(wallet, tokenAddress, amount, threshold, interval);
+        
+        if (stopBot) {
+            console.log(chalk.green('\n✅ DIP Bot started successfully!'));
+            console.log(chalk.yellow('💡 Press Enter to stop the bot'));
+            await this.getUserInput('');
+            stopBot(); // Stop the bot
+            console.log(chalk.yellow('🛑 DIP Bot stopped'));
+        }
+        
+        await this.getUserInput('\nPress Enter to continue...');
+    }
+
+    async detectAndExecuteDIPMenu() {
+        console.clear();
+        console.log(chalk.cyan('🔍 OPUS 4.1: Detect and Execute DIP'));
+        console.log(chalk.gray('═'.repeat(40)));
+        
+        if (this.wallets.length === 0) {
+            console.log(chalk.red('❌ No wallets available. Please add a wallet first.'));
+            await this.getUserInput('\nPress Enter to continue...');
+            return;
+        }
+        
+        // Select wallet
+        console.log(chalk.white('\n📋 Available Wallets:'));
+        this.wallets.forEach((wallet, index) => {
+            console.log(chalk.white(`${index + 1}. ${wallet.name} (${wallet.address})`));
+        });
+        
+        const walletChoice = await this.getUserInput('\nSelect wallet (number): ');
+        const walletIndex = parseInt(walletChoice) - 1;
+        
+        if (walletIndex < 0 || walletIndex >= this.wallets.length) {
+            console.log(chalk.red('❌ Invalid wallet selection'));
+            await this.getUserInput('\nPress Enter to continue...');
+            return;
+        }
+        
+        const wallet = this.wallets[walletIndex];
+        
+        // Get parameters
+        const tokenAddress = await this.getUserInput('\nEnter token address: ');
+        const amountInput = await this.getUserInput('Enter amount in WLD: ');
+        const amount = parseFloat(amountInput);
+        const thresholdInput = await this.getUserInput('Enter DIP threshold % (default 5): ');
+        const threshold = thresholdInput ? parseFloat(thresholdInput) : 5;
+        
+        if (!tokenAddress || isNaN(amount) || amount <= 0) {
+            console.log(chalk.red('❌ Invalid parameters'));
+            await this.getUserInput('\nPress Enter to continue...');
+            return;
+        }
+        
+        console.log(chalk.yellow('\n🔍 Detecting DIP...'));
+        
+        const result = await this.detectAndExecuteDIP(wallet, tokenAddress, amount, threshold);
+        
+        await this.getUserInput('\nPress Enter to continue...');
+    }
+
+    async viewOPUS41PerformanceStats() {
+        console.clear();
+        console.log(chalk.cyan('📊 OPUS 4.1 Performance Statistics'));
+        console.log(chalk.gray('═'.repeat(40)));
+        
+        console.log(chalk.white('\n🚀 Ultra-Fast DIP Trading Features:'));
+        console.log(chalk.white('   • Zero-delay execution'));
+        console.log(chalk.white('   • Ultra-high gas priority (150 gwei)'));
+        console.log(chalk.white('   • Maximum priority fee (75 gwei)'));
+        console.log(chalk.white('   • Parallel processing'));
+        console.log(chalk.white('   • 1-second price cache'));
+        console.log(chalk.white('   • 0.3% fee tier optimization'));
+        console.log(chalk.white('   • 5-minute transaction deadline'));
+        console.log(chalk.white('   • High slippage tolerance (20%)'));
+        
+        console.log(chalk.white('\n⚡ Speed Optimizations:'));
+        console.log(chalk.white('   • Pre-allocated gas settings'));
+        console.log(chalk.white('   • Pre-validated wallet cache'));
+        console.log(chalk.white('   • Immediate transaction submission'));
+        console.log(chalk.white('   • No confirmation waiting'));
+        console.log(chalk.white('   • Batch parallel execution'));
+        
+        await this.getUserInput('\nPress Enter to continue...');
+    }
+
+    async configureOPUS41Settings() {
+        console.clear();
+        console.log(chalk.cyan('⚙️  OPUS 4.1 Configuration'));
+        console.log(chalk.gray('═'.repeat(40)));
+        
+        console.log(chalk.white('\nCurrent OPUS 4.1 Settings:'));
+        console.log(chalk.white(`   Ultra-Fast Gas Price: 150 gwei`));
+        console.log(chalk.white(`   Ultra-Fast Gas Limit: 1,000,000`));
+        console.log(chalk.white(`   Priority Fee: 75 gwei`));
+        console.log(chalk.white(`   Default Slippage: 20%`));
+        console.log(chalk.white(`   Price Cache: 1 second`));
+        console.log(chalk.white(`   Fee Tier: 0.3%`));
+        console.log(chalk.white(`   Transaction Deadline: 5 minutes`));
+        
+        console.log(chalk.yellow('\n💡 These settings are optimized for maximum speed.'));
+        console.log(chalk.yellow('   Modifying them may affect execution speed.'));
         
         await this.getUserInput('\nPress Enter to continue...');
     }
