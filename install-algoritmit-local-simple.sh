@@ -118,8 +118,8 @@ copy_essential_files() {
         cp "$CURRENT_DIR/worldchain-trading-bot.js" "$BOT_DIR/"
         print_success "Copied worldchain-trading-bot.js"
     else
-        print_error "worldchain-trading-bot.js not found in current directory"
-        exit 1
+        print_info "worldchain-trading-bot.js not found locally, downloading from repository..."
+        download_files_from_repository
     fi
     
     # Copy package.json if exists
@@ -150,8 +150,43 @@ EOF
         print_success "Created package.json"
     fi
     
-    # Copy other essential files
+    # Copy other essential files (only if we're copying locally)
+    if [ -f "$CURRENT_DIR/worldchain-trading-bot.js" ]; then
+        ESSENTIAL_FILES=(
+            "trading-strategy.js"
+            "strategy-builder.js"
+            "price-database.js"
+            "algoritmit-strategy.js"
+            "telegram-notifications.js"
+            "token-discovery.js"
+            "trading-engine.js"
+            "sinclave-enhanced-engine.js"
+            "sinclave.js"
+        )
+        
+        for file in "${ESSENTIAL_FILES[@]}"; do
+            if [ -f "$CURRENT_DIR/$file" ]; then
+                cp "$CURRENT_DIR/$file" "$BOT_DIR/"
+                print_success "Copied $file"
+            fi
+        done
+    fi
+    
+    print_success "Essential files copied successfully"
+}
+
+# Download files from repository
+download_files_from_repository() {
+    print_info "Downloading files from repository..."
+    
+    cd "$BOT_DIR"
+    
+    # Repository base URL
+    REPO_BASE="https://raw.githubusercontent.com/notevayasconadan/eva/cursor/check-repository-branches-for-latest-code-05c1"
+    
+    # List of essential files to download
     ESSENTIAL_FILES=(
+        "worldchain-trading-bot.js"
         "trading-strategy.js"
         "strategy-builder.js"
         "price-database.js"
@@ -163,14 +198,48 @@ EOF
         "sinclave.js"
     )
     
+    # Download each file
     for file in "${ESSENTIAL_FILES[@]}"; do
-        if [ -f "$CURRENT_DIR/$file" ]; then
-            cp "$CURRENT_DIR/$file" "$BOT_DIR/"
-            print_success "Copied $file"
+        print_info "Downloading: $file"
+        if curl -fsSL "$REPO_BASE/$file" -o "$file"; then
+            print_success "Downloaded: $file"
+        else
+            print_warning "Failed to download: $file"
         fi
     done
     
-    print_success "Essential files copied successfully"
+    # Download package.json
+    print_info "Downloading: package.json"
+    if curl -fsSL "$REPO_BASE/package.json" -o "package.json"; then
+        print_success "Downloaded: package.json"
+    else
+        print_warning "Failed to download package.json, creating minimal version"
+        create_minimal_package_json
+    fi
+}
+
+# Create minimal package.json if download fails
+create_minimal_package_json() {
+    cat > "package.json" << EOF
+{
+  "name": "algoritmit-trading-bot",
+  "version": "1.0.0",
+  "description": "ALGORITMIT Trading Bot for Worldchain",
+  "main": "worldchain-trading-bot.js",
+  "scripts": {
+    "start": "node worldchain-trading-bot.js",
+    "dev": "node worldchain-trading-bot.js"
+  },
+  "dependencies": {
+    "@holdstation/worldchain-sdk": "^4.0.29",
+    "@holdstation/worldchain-ethers-v6": "^4.0.29",
+    "ethers": "^6.0.0",
+    "axios": "^1.0.0",
+    "dotenv": "^16.0.0"
+  }
+}
+EOF
+    print_success "Created minimal package.json"
 }
 
 # Install dependencies
