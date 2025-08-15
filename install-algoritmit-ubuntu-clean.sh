@@ -1,40 +1,23 @@
 #!/bin/bash
-
 # 🤖 ALGORITMIT Ubuntu Clean Installer v4.0
 # Enhanced installation script with package system fixes and error handling
 
-set -e  # Exit on any error
+set -e
 
 # Colors for output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
-PURPLE='\033[0;35m'
-CYAN='\033[0;36m'
-WHITE='\033[1;37m'
 NC='\033[0m' # No Color
 
-# ASCII Art Banner
-print_banner() {
-    echo -e "${CYAN}"
-    cat << "EOF"
-    ╔══════════════════════════════════════════════════════════════╗
-    ║                                                              ║
-    ║  🤖 ALGORITMIT Ubuntu Clean Installer v4.0                  ║
-    ║  🎯 Enhanced Installation with Package System Fixes          ║
-    ║                                                              ║
-    ║  Advanced AI-Powered Trading Bot for Worldchain             ║
-    ║  Clean Installation Package for Ubuntu Servers              ║
-    ║                                                              ║
-    ╚══════════════════════════════════════════════════════════════╝
-EOF
-    echo -e "${NC}"
+# Print functions
+print_info() {
+    echo -e "${BLUE}[INFO]${NC} $1"
 }
 
-# Function to print colored output
-print_status() {
-    echo -e "${GREEN}[INFO]${NC} $1"
+print_success() {
+    echo -e "${GREEN}[SUCCESS]${NC} $1"
 }
 
 print_warning() {
@@ -45,15 +28,11 @@ print_error() {
     echo -e "${RED}[ERROR]${NC} $1"
 }
 
-print_success() {
-    echo -e "${GREEN}[SUCCESS]${NC} $1"
-}
-
-print_header() {
-    echo -e "${BLUE}══════════════════════════════════════════════════════════════${NC}"
-    echo -e "${WHITE}$1${NC}"
-    echo -e "${BLUE}══════════════════════════════════════════════════════════════${NC}"
-}
+# Configuration
+PACKAGE_URL="https://github.com/notevayasconadan/eva/raw/cursor/check-repository-branches-for-latest-code-05c1/releases/algoritmit-ubuntu-server-v4.0-novice.tar.gz"
+INSTALL_DIR="/opt/algoritmit-trading-bot"
+SERVICE_NAME="algoritmit-trading-bot"
+SERVICE_USER="algoritmit"
 
 # Check if running as root
 check_root() {
@@ -65,430 +44,387 @@ check_root() {
 
 # Check Ubuntu version
 check_ubuntu_version() {
-    print_header "Checking Ubuntu Version"
-    
-    if [[ ! -f /etc/os-release ]]; then
-        print_error "This script is designed for Ubuntu systems only"
-        exit 1
+    if ! command -v lsb_release &> /dev/null; then
+        print_warning "lsb_release not found, attempting to install..."
+        apt update && apt install -y lsb-release
     fi
     
-    source /etc/os-release
-    if [[ "$ID" != "ubuntu" ]]; then
-        print_error "This script is designed for Ubuntu systems only"
-        exit 1
-    fi
+    UBUNTU_VERSION=$(lsb_release -rs)
+    print_info "Detected Ubuntu version: $UBUNTU_VERSION"
     
-    print_status "Detected Ubuntu $VERSION_ID"
-    
-    # Check if version is supported
-    if [[ "$VERSION_ID" != "20.04" && "$VERSION_ID" != "22.04" && "$VERSION_ID" != "24.04" ]]; then
-        print_warning "Ubuntu $VERSION_ID detected. This script is tested with Ubuntu 20.04, 22.04, and 24.04"
-        read -p "Continue anyway? (y/N): " -n 1 -r
-        echo
-        if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-            exit 1
-        fi
+    if [[ "$UBUNTU_VERSION" != "20.04" && "$UBUNTU_VERSION" != "22.04" && "$UBUNTU_VERSION" != "24.04" ]]; then
+        print_warning "This script is tested on Ubuntu 20.04, 22.04, and 24.04. Your version ($UBUNTU_VERSION) may work but is not guaranteed."
     fi
 }
 
 # Check system requirements
 check_system_requirements() {
-    print_header "Checking System Requirements"
+    print_info "Checking system requirements..."
     
-    # Check RAM
-    total_ram=$(free -m | awk 'NR==2{printf "%.0f", $2/1024}')
-    print_status "Total RAM: ${total_ram}GB"
-    
-    if [[ $total_ram -lt 2 ]]; then
-        print_error "Minimum 2GB RAM required. Current: ${total_ram}GB"
+    # Check available disk space (need at least 1GB)
+    AVAILABLE_SPACE=$(df / | awk 'NR==2 {print $4}')
+    if [ "$AVAILABLE_SPACE" -lt 1048576 ]; then
+        print_error "Insufficient disk space. Need at least 1GB free space."
         exit 1
     fi
     
-    if [[ $total_ram -lt 4 ]]; then
-        print_warning "Recommended 4GB RAM. Current: ${total_ram}GB"
+    # Check available memory (need at least 512MB)
+    AVAILABLE_MEM=$(free -m | awk 'NR==2{printf "%.0f", $7}')
+    if [ "$AVAILABLE_MEM" -lt 512 ]; then
+        print_warning "Low memory detected (${AVAILABLE_MEM}MB). Performance may be affected."
     fi
     
-    # Check disk space
-    available_space=$(df -BG / | awk 'NR==2{print $4}' | sed 's/G//')
-    print_status "Available disk space: ${available_space}GB"
-    
-    if [[ $available_space -lt 10 ]]; then
-        print_error "Minimum 10GB free space required. Current: ${available_space}GB"
-        exit 1
-    fi
-    
-    # Check internet connection
-    if ! ping -c 1 google.com &> /dev/null; then
-        print_error "No internet connection detected"
-        exit 1
-    fi
-    
-    print_success "System requirements met"
+    print_success "System requirements check passed"
 }
 
-# Fix package system issues
+# Enhanced package system fix with specific corito handling
 fix_package_system() {
-    print_header "Fixing Package System Issues"
+    print_info "Attempting to fix broken packages..."
     
-    print_status "Checking for broken packages..."
+    # First, try to remove corito specifically with multiple methods
+    print_info "Attempting to remove problematic corito package..."
     
-    # Check for broken packages
-    broken_packages=$(dpkg -l | grep -E "^iU|^rc" | awk '{print $2}' | grep -v "^$" || true)
+    # Method 1: Force remove with dpkg
+    if dpkg -l | grep -q "corito"; then
+        print_info "Found corito package, attempting force removal..."
+        dpkg --remove --force-remove-reinstreq corito 2>/dev/null || true
+        dpkg --purge --force-all corito 2>/dev/null || true
+    fi
     
-    if [[ -n "$broken_packages" ]]; then
-        print_warning "Found broken packages: $broken_packages"
-        print_status "Attempting to fix broken packages..."
-        
-        # Remove broken packages
-        for package in $broken_packages; do
-            print_status "Removing broken package: $package"
-            dpkg --remove --force-remove-reinstreq "$package" 2>/dev/null || true
-            dpkg --purge --force-all "$package" 2>/dev/null || true
+    # Method 2: Remove from dpkg status
+    if grep -q "corito" /var/lib/dpkg/status; then
+        print_info "Removing corito from dpkg status..."
+        cp /var/lib/dpkg/status /var/lib/dpkg/status.backup
+        sed -i '/^Package: corito$/,/^$/d' /var/lib/dpkg/status
+    fi
+    
+    # Method 3: Clean up any remaining corito files
+    if [ -f "/var/lib/dpkg/info/corito.list" ]; then
+        print_info "Removing corito package files..."
+        rm -f /var/lib/dpkg/info/corito.* 2>/dev/null || true
+    fi
+    
+    # Now handle other broken packages
+    print_info "Checking for other broken packages..."
+    
+    # Find and remove broken packages
+    BROKEN_PACKAGES=$(dpkg -l | grep "^iU\|^rc" | awk '{print $2}' | grep -v "^$" || true)
+    
+    if [ -n "$BROKEN_PACKAGES" ]; then
+        print_info "Found broken packages: $BROKEN_PACKAGES"
+        for pkg in $BROKEN_PACKAGES; do
+            print_info "Removing broken package: $pkg"
+            dpkg --remove --force-remove-reinstreq "$pkg" 2>/dev/null || true
+            dpkg --purge --force-all "$pkg" 2>/dev/null || true
         done
     fi
     
-    # Fix package system
-    print_status "Configuring package system..."
+    print_info "Configuring package system..."
     dpkg --configure -a || true
     
-    print_status "Fixing broken dependencies..."
+    print_info "Fixing broken dependencies..."
     apt --fix-broken install -y || true
     
-    print_status "Cleaning package cache..."
+    print_info "Cleaning package cache..."
     apt clean
     apt autoclean
     apt autoremove -y
     
-    print_status "Updating package lists..."
-    apt update
+    print_info "Updating package lists..."
+    apt update || true
     
-    print_success "Package system fixed"
+    print_success "Package system fix completed"
 }
 
-# Update system packages safely
+# Safe system update
 update_system_safely() {
-    print_header "Updating System Packages Safely"
+    print_info "Updating system packages safely..."
     
-    print_status "Updating package list..."
+    # Update package lists
     apt update
     
-    print_status "Checking for available upgrades..."
-    upgradable_packages=$(apt list --upgradable 2>/dev/null | grep -v "WARNING" | grep -v "Listing" | wc -l)
+    # Get list of upgradable packages
+    UPGRADABLE=$(apt list --upgradable 2>/dev/null | grep -v "WARNING" | grep -v "Listing" | cut -d'/' -f1 | grep -v "^$" || true)
     
-    if [[ $upgradable_packages -gt 0 ]]; then
-        print_status "Found $upgradable_packages packages to upgrade"
+    if [ -n "$UPGRADABLE" ]; then
+        print_info "Found upgradable packages. Upgrading individually to avoid conflicts..."
         
-        # Upgrade packages one by one to avoid issues
-        apt list --upgradable 2>/dev/null | grep -v "WARNING" | grep -v "Listing" | cut -d'/' -f1 | while read package; do
-            if [[ -n "$package" ]]; then
-                print_status "Upgrading: $package"
-                apt install -y "$package" || {
-                    print_warning "Failed to upgrade $package, skipping..."
-                    continue
-                }
+        for pkg in $UPGRADABLE; do
+            print_info "Upgrading: $pkg"
+            if ! apt install -y "$pkg"; then
+                print_warning "Failed to upgrade $pkg, skipping..."
+                continue
             fi
         done
     else
-        print_status "No packages to upgrade"
+        print_info "No packages need upgrading"
     fi
     
-    print_success "System updated successfully"
+    print_success "System update completed"
 }
 
-# Install essential dependencies
+# Install dependencies
 install_dependencies() {
-    print_header "Installing Essential Dependencies"
+    print_info "Installing essential dependencies..."
     
-    print_status "Installing essential packages..."
+    # Install essential packages individually with error handling
+    ESSENTIAL_PACKAGES="curl wget git build-essential python3 python3-pip"
     
-    # Install packages one by one to avoid issues
-    packages=(
-        "curl"
-        "wget"
-        "git"
-        "build-essential"
-        "python3"
-        "python3-pip"
-        "software-properties-common"
-        "apt-transport-https"
-        "ca-certificates"
-        "gnupg"
-        "lsb-release"
-        "htop"
-        "nano"
-        "vim"
-        "screen"
-        "tmux"
-    )
-    
-    for package in "${packages[@]}"; do
-        print_status "Installing: $package"
-        apt install -y "$package" || {
-            print_warning "Failed to install $package, continuing..."
-            continue
-        }
+    for pkg in $ESSENTIAL_PACKAGES; do
+        print_info "Installing: $pkg"
+        if ! apt install -y "$pkg"; then
+            print_warning "Failed to install $pkg, attempting to continue..."
+        fi
     done
     
-    print_status "Installing Node.js 18.x..."
+    # Install Node.js 18.x
+    print_info "Installing Node.js 18.x..."
     
-    # Remove old Node.js if exists
+    # Remove any existing Node.js installations
     apt remove -y nodejs npm 2>/dev/null || true
+    apt autoremove -y
     
-    # Install Node.js 18
-    curl -fsSL https://deb.nodesource.com/setup_18.x | bash -
-    apt install -y nodejs
+    # Add NodeSource repository
+    if ! command -v node &> /dev/null; then
+        print_info "Adding NodeSource repository..."
+        curl -fsSL https://deb.nodesource.com/setup_18.x | bash -
+        apt install -y nodejs
+    fi
     
     # Verify Node.js installation
-    node_version=$(node --version)
-    npm_version=$(npm --version)
-    print_status "Node.js version: $node_version"
-    print_status "npm version: $npm_version"
+    NODE_VERSION=$(node --version 2>/dev/null || echo "not installed")
+    NPM_VERSION=$(npm --version 2>/dev/null || echo "not installed")
+    
+    print_info "Node.js version: $NODE_VERSION"
+    print_info "npm version: $NPM_VERSION"
+    
+    if [[ "$NODE_VERSION" == "not installed" ]]; then
+        print_error "Failed to install Node.js"
+        exit 1
+    fi
     
     print_success "Dependencies installed successfully"
 }
 
-# Create installation directory
-create_installation_directory() {
-    print_header "Creating Installation Directory"
-    
-    INSTALL_DIR="/opt/algoritmit"
-    
-    print_status "Creating installation directory: $INSTALL_DIR"
-    mkdir -p $INSTALL_DIR
-    cd $INSTALL_DIR
-    
-    print_success "Installation directory created"
-}
-
-# Download and extract the package
+# Download package with retry mechanism
 download_package() {
-    print_header "Downloading ALGORITMIT Package"
+    print_info "Downloading ALGORITMIT package..."
     
-    PACKAGE_URL="https://github.com/notevayasconadan/eva/raw/cursor/check-repository-branches-for-latest-code-05c1/releases/algoritmit-ubuntu-server-v4.0-novice.tar.gz"
-    PACKAGE_NAME="algoritmit-ubuntu-server-v4.0-novice.tar.gz"
-    
-    print_status "Downloading package from GitHub..."
+    # Create temporary directory
+    TEMP_DIR=$(mktemp -d)
+    cd "$TEMP_DIR"
     
     # Try multiple download methods
+    DOWNLOAD_SUCCESS=false
+    
+    # Method 1: wget
     if command -v wget &> /dev/null; then
-        wget -O $PACKAGE_NAME $PACKAGE_URL || {
-            print_warning "wget failed, trying curl..."
-            curl -L -o $PACKAGE_NAME $PACKAGE_URL || {
-                print_error "Failed to download package"
-                exit 1
-            }
-        }
-    elif command -v curl &> /dev/null; then
-        curl -L -o $PACKAGE_NAME $PACKAGE_URL || {
-            print_error "Failed to download package"
-            exit 1
-        }
+        print_info "Attempting download with wget..."
+        if wget -q --show-progress "$PACKAGE_URL" -O algoritmit-package.tar.gz; then
+            DOWNLOAD_SUCCESS=true
+        fi
+    fi
+    
+    # Method 2: curl (fallback)
+    if [ "$DOWNLOAD_SUCCESS" = false ] && command -v curl &> /dev/null; then
+        print_info "Attempting download with curl..."
+        if curl -fsSL "$PACKAGE_URL" -o algoritmit-package.tar.gz; then
+            DOWNLOAD_SUCCESS=true
+        fi
+    fi
+    
+    if [ "$DOWNLOAD_SUCCESS" = false ]; then
+        print_error "Failed to download package from $PACKAGE_URL"
+        print_info "Please check your internet connection and try again"
+        exit 1
+    fi
+    
+    print_success "Package downloaded successfully"
+    
+    # Extract package
+    print_info "Extracting package..."
+    tar -xzf algoritmit-package.tar.gz
+    
+    # Move to installation directory
+    if [ -d "algoritmit-ubuntu-server-v4.0-novice" ]; then
+        mkdir -p "$INSTALL_DIR"
+        cp -r algoritmit-ubuntu-server-v4.0-novice/* "$INSTALL_DIR/"
+        cd "$INSTALL_DIR"
     else
-        print_error "Neither wget nor curl is available"
+        print_error "Invalid package structure"
         exit 1
     fi
     
-    if [[ ! -f $PACKAGE_NAME ]]; then
-        print_error "Failed to download package"
-        exit 1
-    fi
+    # Clean up
+    rm -rf "$TEMP_DIR"
     
-    print_status "Extracting package..."
-    tar -xzf $PACKAGE_NAME
-    
-    if [[ ! -d "algoritmit-ubuntu-server-v4.0-novice" ]]; then
-        print_error "Failed to extract package"
-        exit 1
-    fi
-    
-    cd algoritmit-ubuntu-server-v4.0-novice
-    
-    print_success "Package downloaded and extracted successfully"
+    print_success "Package extracted to $INSTALL_DIR"
 }
 
-# Install Node.js dependencies
+# Install Node.js dependencies with retry
 install_node_dependencies() {
-    print_header "Installing Node.js Dependencies"
+    print_info "Installing Node.js dependencies..."
     
-    print_status "Installing npm packages..."
+    cd "$INSTALL_DIR"
     
-    # Clear npm cache first
+    # Clear npm cache
     npm cache clean --force
     
     # Install dependencies with retry mechanism
-    max_retries=3
-    for ((i=1; i<=max_retries; i++)); do
-        print_status "Attempt $i of $max_retries to install npm packages..."
+    MAX_RETRIES=3
+    RETRY_COUNT=0
+    
+    while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
         if npm install --production; then
-            break
+            print_success "Node.js dependencies installed successfully"
+            return 0
         else
-            if [[ $i -eq $max_retries ]]; then
-                print_error "Failed to install npm dependencies after $max_retries attempts"
-                exit 1
+            RETRY_COUNT=$((RETRY_COUNT + 1))
+            print_warning "npm install failed (attempt $RETRY_COUNT/$MAX_RETRIES)"
+            
+            if [ $RETRY_COUNT -lt $MAX_RETRIES ]; then
+                print_info "Retrying in 5 seconds..."
+                sleep 5
+                npm cache clean --force
             fi
-            print_warning "npm install failed, retrying..."
-            sleep 2
         fi
     done
     
-    print_success "Node.js dependencies installed successfully"
+    print_error "Failed to install Node.js dependencies after $MAX_RETRIES attempts"
+    exit 1
 }
 
-# Install HoldStation SDK
+# Install HoldStation SDK with retry
 install_holdstation_sdk() {
-    print_header "Installing HoldStation SDK"
+    print_info "Installing HoldStation SDK..."
     
-    print_status "Installing HoldStation SDK..."
+    cd "$INSTALL_DIR"
     
-    # Install HoldStation SDK with retry mechanism
-    max_retries=3
-    for ((i=1; i<=max_retries; i++)); do
-        print_status "Attempt $i of $max_retries to install HoldStation SDK..."
-        if npm install @holdstation/worldchain-sdk@^4.0.29 && npm install @holdstation/worldchain-ethers-v6@^4.0.29; then
-            break
+    MAX_RETRIES=3
+    RETRY_COUNT=0
+    
+    while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
+        if npm install @holdstation/worldchain-sdk @holdstation/worldchain-ethers-v6; then
+            print_success "HoldStation SDK installed successfully"
+            return 0
         else
-            if [[ $i -eq $max_retries ]]; then
-                print_error "Failed to install HoldStation SDK after $max_retries attempts"
-                exit 1
+            RETRY_COUNT=$((RETRY_COUNT + 1))
+            print_warning "HoldStation SDK installation failed (attempt $RETRY_COUNT/$MAX_RETRIES)"
+            
+            if [ $RETRY_COUNT -lt $MAX_RETRIES ]; then
+                print_info "Retrying in 5 seconds..."
+                sleep 5
             fi
-            print_warning "HoldStation SDK install failed, retrying..."
-            sleep 2
         fi
     done
     
-    print_success "HoldStation SDK installed successfully"
+    print_error "Failed to install HoldStation SDK after $MAX_RETRIES attempts"
+    exit 1
 }
 
-# Setup environment configuration
+# Setup environment
 setup_environment() {
-    print_header "Setting Up Environment Configuration"
+    print_info "Setting up environment..."
     
-    print_status "Creating environment configuration..."
+    # Create service user
+    if ! id "$SERVICE_USER" &>/dev/null; then
+        useradd -r -s /bin/false -d "$INSTALL_DIR" "$SERVICE_USER"
+    fi
     
-    # Create .env.example if it doesn't exist
-    if [[ ! -f .env.example ]]; then
-        cat > .env.example << 'EOF'
-# ALGORITMIT Ubuntu Server Configuration
-# Copy this file to .env and edit with your settings
+    # Set permissions
+    chown -R "$SERVICE_USER:$SERVICE_USER" "$INSTALL_DIR"
+    chmod -R 755 "$INSTALL_DIR"
+    
+    # Create .env file if it doesn't exist
+    if [ ! -f "$INSTALL_DIR/.env" ]; then
+        cat > "$INSTALL_DIR/.env" << EOF
+# ALGORITMIT Trading Bot Configuration
+# Generated by installer on $(date)
 
 # Wallet Configuration
-PRIVATE_KEY_1=your_private_key_here
-WALLET_NAME_1=Main Trading Wallet
+PRIVATE_KEY=your_private_key_here
+WALLET_ADDRESS=your_wallet_address_here
 
 # RPC Configuration
-WORLDCHAIN_RPC_URL=https://worldchain-mainnet.g.alchemy.com/public
-ALCHEMY_API_KEY=your_alchemy_api_key
+RPC_URL=https://rpc.worldchain.org
+CHAIN_ID=12345
 
-# ALGORITMIT ML Settings
-ML_CONFIDENCE_THRESHOLD=75
-ML_MAX_POSITION_SIZE=0.01
-ML_LEARNING_MODE=true
-ML_AUTO_TRADING=false
+# Trading Configuration
+TRADING_ENABLED=false
+LEARNING_MODE=true
+PAPER_TRADING=true
 
-# Telegram Notifications (Optional)
-TELEGRAM_BOT_TOKEN=your_bot_token
-TELEGRAM_CHAT_ID=your_chat_id
+# Safety Configuration
+MAX_SLIPPAGE=5
+GAS_LIMIT=300000
+GAS_PRICE=20000000000
 
-# Logging Configuration
+# Telegram Configuration
+TELEGRAM_BOT_TOKEN=your_bot_token_here
+TELEGRAM_CHAT_ID=your_chat_id_here
+
+# Performance Configuration
+PRICE_UPDATE_INTERVAL=30
 LOG_LEVEL=info
-LOG_TO_FILE=true
-LOG_FILE_PATH=./logs/bot.log
-
-# Performance Settings
-PRICE_CHECK_INTERVAL=3
-MAX_CONCURRENT_TRADES=3
-GAS_LIMIT_BUFFER=1.2
-
-# Safety Settings
-EMERGENCY_STOP=false
-MAX_DAILY_LOSS=0.5
-STOP_LOSS_PERCENTAGE=10
 EOF
+        chown "$SERVICE_USER:$SERVICE_USER" "$INSTALL_DIR/.env"
+        chmod 600 "$INSTALL_DIR/.env"
     fi
     
-    # Copy .env.example to .env if .env doesn't exist
-    if [[ ! -f .env ]]; then
-        cp .env.example .env
-        print_status "Environment file created: .env"
-        print_warning "Please edit .env file with your configuration before starting the bot"
-    else
-        print_status "Environment file already exists: .env"
-    fi
-    
-    # Create logs directory
-    mkdir -p logs
-    
-    print_success "Environment configuration setup complete"
+    print_success "Environment setup completed"
 }
 
 # Create systemd service
 create_systemd_service() {
-    print_header "Creating Systemd Service"
+    print_info "Creating systemd service..."
     
-    SERVICE_FILE="/etc/systemd/system/algoritmit.service"
-    
-    print_status "Creating systemd service file..."
-    
-    cat > $SERVICE_FILE << EOF
+    cat > "/etc/systemd/system/$SERVICE_NAME.service" << EOF
 [Unit]
 Description=ALGORITMIT Trading Bot
 After=network.target
-Wants=network.target
 
 [Service]
 Type=simple
-User=root
-Group=root
-WorkingDirectory=/opt/algoritmit/algoritmit-ubuntu-server-v4.0-novice
+User=$SERVICE_USER
+WorkingDirectory=$INSTALL_DIR
 ExecStart=/usr/bin/node worldchain-trading-bot.js
 Restart=always
 RestartSec=10
-StandardOutput=journal
-StandardError=journal
-SyslogIdentifier=algoritmit
 Environment=NODE_ENV=production
-Environment=HOME=/root
 
 # Security settings
 NoNewPrivileges=true
 PrivateTmp=true
 ProtectSystem=strict
 ProtectHome=true
-ReadWritePaths=/opt/algoritmit
-
-# Resource limits
-LimitNOFILE=65536
-LimitNPROC=4096
+ReadWritePaths=$INSTALL_DIR
 
 [Install]
 WantedBy=multi-user.target
 EOF
     
-    # Reload systemd
+    # Reload systemd and enable service
     systemctl daemon-reload
+    systemctl enable "$SERVICE_NAME"
     
-    print_success "Systemd service created: $SERVICE_FILE"
+    print_success "Systemd service created and enabled"
 }
 
 # Setup log rotation
 setup_log_rotation() {
-    print_header "Setting Up Log Rotation"
+    print_info "Setting up log rotation..."
     
-    LOGROTATE_FILE="/etc/logrotate.d/algoritmit"
-    
-    print_status "Creating log rotation configuration..."
-    
-    cat > $LOGROTATE_FILE << EOF
-/opt/algoritmit/algoritmit-ubuntu-server-v4.0-novice/logs/*.log {
+    cat > "/etc/logrotate.d/$SERVICE_NAME" << EOF
+$INSTALL_DIR/logs/*.log {
     daily
     missingok
     rotate 7
     compress
     delaycompress
     notifempty
-    create 644 root root
+    create 644 $SERVICE_USER $SERVICE_USER
     postrotate
-        systemctl reload algoritmit > /dev/null 2>&1 || true
+        systemctl reload $SERVICE_NAME > /dev/null 2>&1 || true
     endscript
 }
 EOF
@@ -498,232 +434,135 @@ EOF
 
 # Create start script
 create_start_script() {
-    print_header "Creating Start Script"
+    print_info "Creating start script..."
     
-    print_status "Creating start script..."
-    
-    cat > start.sh << 'EOF'
+    cat > "$INSTALL_DIR/start.sh" << 'EOF'
 #!/bin/bash
+# ALGORITMIT Trading Bot Start Script
 
-# ALGORITMIT Start Script
-# This script starts the trading bot with proper environment
-
-set -e
-
-# Colors
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-RED='\033[0;31m'
-NC='\033[0m'
-
-echo -e "${GREEN}🤖 Starting ALGORITMIT Trading Bot...${NC}"
+cd "$(dirname "$0")"
 
 # Check if .env exists
-if [[ ! -f .env ]]; then
-    echo -e "${RED}❌ Error: .env file not found${NC}"
-    echo -e "${YELLOW}💡 Please copy .env.example to .env and configure your settings${NC}"
+if [ ! -f ".env" ]; then
+    echo "Error: .env file not found. Please configure the bot first."
     exit 1
 fi
 
-# Check Node.js
+# Check if Node.js is installed
 if ! command -v node &> /dev/null; then
-    echo -e "${RED}❌ Error: Node.js not found${NC}"
+    echo "Error: Node.js is not installed"
     exit 1
 fi
 
-# Create logs directory
-mkdir -p logs
+# Check if dependencies are installed
+if [ ! -d "node_modules" ]; then
+    echo "Installing dependencies..."
+    npm install
+fi
 
 # Start the bot
-echo -e "${GREEN}🚀 Starting bot...${NC}"
+echo "Starting ALGORITMIT Trading Bot..."
 node worldchain-trading-bot.js
 EOF
     
-    chmod +x start.sh
+    chmod +x "$INSTALL_DIR/start.sh"
+    chown "$SERVICE_USER:$SERVICE_USER" "$INSTALL_DIR/start.sh"
     
-    print_success "Start script created: start.sh"
+    print_success "Start script created"
 }
 
 # Create management script
 create_management_script() {
-    print_header "Creating Management Script"
+    print_info "Creating management script..."
     
-    print_status "Creating management script..."
-    
-    cat > manage-algoritmit.sh << 'EOF'
+    cat > "/usr/local/bin/algoritmit" << EOF
 #!/bin/bash
+# ALGORITMIT Trading Bot Management Script
 
-# ALGORITMIT Management Script
-# This script provides easy management of the ALGORITMIT service
+SERVICE_NAME="$SERVICE_NAME"
+INSTALL_DIR="$INSTALL_DIR"
 
-set -e
-
-# Colors
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-RED='\033[0;31m'
-BLUE='\033[0;34m'
-NC='\033[0m'
-
-SERVICE_NAME="algoritmit"
-INSTALL_DIR="/opt/algoritmit/algoritmit-ubuntu-server-v4.0-novice"
-
-print_status() {
-    echo -e "${GREEN}[INFO]${NC} $1"
-}
-
-print_warning() {
-    echo -e "${YELLOW}[WARNING]${NC} $1"
-}
-
-print_error() {
-    echo -e "${RED}[ERROR]${NC} $1"
-}
-
-show_help() {
-    echo -e "${BLUE}ALGORITMIT Management Script${NC}"
-    echo ""
-    echo "Usage: $0 [COMMAND]"
-    echo ""
-    echo "Commands:"
-    echo "  start     - Start the ALGORITMIT service"
-    echo "  stop      - Stop the ALGORITMIT service"
-    echo "  restart   - Restart the ALGORITMIT service"
-    echo "  status    - Show service status"
-    echo "  logs      - Show service logs"
-    echo "  config    - Edit configuration file"
-    echo "  update    - Update ALGORITMIT to latest version"
-    echo "  uninstall - Uninstall ALGORITMIT"
-    echo "  help      - Show this help message"
-    echo ""
-}
-
-case "$1" in
+case "\$1" in
     start)
-        print_status "Starting ALGORITMIT service..."
-        systemctl start $SERVICE_NAME
-        systemctl enable $SERVICE_NAME
-        print_status "Service started and enabled"
+        systemctl start \$SERVICE_NAME
         ;;
     stop)
-        print_status "Stopping ALGORITMIT service..."
-        systemctl stop $SERVICE_NAME
-        systemctl disable $SERVICE_NAME
-        print_status "Service stopped and disabled"
+        systemctl stop \$SERVICE_NAME
         ;;
     restart)
-        print_status "Restarting ALGORITMIT service..."
-        systemctl restart $SERVICE_NAME
-        print_status "Service restarted"
+        systemctl restart \$SERVICE_NAME
         ;;
     status)
-        systemctl status $SERVICE_NAME
+        systemctl status \$SERVICE_NAME
         ;;
     logs)
-        journalctl -u $SERVICE_NAME -f
+        journalctl -u \$SERVICE_NAME -f
         ;;
     config)
-        if [[ -f "$INSTALL_DIR/.env" ]]; then
-            nano "$INSTALL_DIR/.env"
-        else
-            print_error "Configuration file not found"
-        fi
+        nano \$INSTALL_DIR/.env
         ;;
     update)
-        print_status "Updating ALGORITMIT..."
-        systemctl stop $SERVICE_NAME
-        cd $INSTALL_DIR
+        echo "Updating ALGORITMIT Trading Bot..."
+        cd \$INSTALL_DIR
         git pull origin main
         npm install
-        systemctl start $SERVICE_NAME
-        print_status "Update completed"
+        systemctl restart \$SERVICE_NAME
         ;;
-    uninstall)
-        print_warning "This will completely remove ALGORITMIT"
-        read -p "Are you sure? (y/N): " -n 1 -r
-        echo
-        if [[ $REPLY =~ ^[Yy]$ ]]; then
-            systemctl stop $SERVICE_NAME
-            systemctl disable $SERVICE_NAME
-            rm -f /etc/systemd/system/$SERVICE_NAME.service
-            rm -f /etc/logrotate.d/$SERVICE_NAME
-            systemctl daemon-reload
-            rm -rf /opt/algoritmit
-            print_status "ALGORITMIT uninstalled"
-        fi
-        ;;
-    help|*)
-        show_help
+    *)
+        echo "Usage: \$0 {start|stop|restart|status|logs|config|update}"
+        exit 1
         ;;
 esac
 EOF
     
-    chmod +x manage-algoritmit.sh
+    chmod +x "/usr/local/bin/algoritmit"
     
-    # Create symlink for easy access
-    ln -sf $PWD/manage-algoritmit.sh /usr/local/bin/algoritmit
-    
-    print_success "Management script created: manage-algoritmit.sh"
-    print_status "You can now use: algoritmit [command] from anywhere"
+    print_success "Management script created"
 }
 
-# Display installation summary
+# Show installation summary
 show_installation_summary() {
-    print_header "Installation Summary"
-    
-    echo -e "${GREEN}✅ ALGORITMIT Ubuntu Clean Package v4.0 installed successfully!${NC}"
-    echo ""
-    echo -e "${WHITE}📁 Installation Directory:${NC} /opt/algoritmit/algoritmit-ubuntu-server-v4.0-novice"
-    echo -e "${WHITE}🔧 Service Name:${NC} algoritmit"
-    echo -e "${WHITE}📝 Configuration File:${NC} /opt/algoritmit/algoritmit-ubuntu-server-v4.0-novice/.env"
-    echo -e "${WHITE}📊 Logs Directory:${NC} /opt/algoritmit/algoritmit-ubuntu-server-v4.0-novice/logs"
-    echo ""
-    echo -e "${YELLOW}📋 Next Steps:${NC}"
-    echo "1. Edit configuration: sudo nano /opt/algoritmit/algoritmit-ubuntu-server-v4.0-novice/.env"
-    echo "2. Start the service: sudo systemctl start algoritmit"
-    echo "3. Enable auto-start: sudo systemctl enable algoritmit"
-    echo "4. Check status: sudo systemctl status algoritmit"
-    echo "5. View logs: sudo journalctl -u algoritmit -f"
-    echo ""
-    echo -e "${BLUE}🛠️  Management Commands:${NC}"
-    echo "• Start/Stop: sudo algoritmit start|stop"
-    echo "• Status: sudo algoritmit status"
-    echo "• Logs: sudo algoritmit logs"
-    echo "• Config: sudo algoritmit config"
-    echo "• Update: sudo algoritmit update"
-    echo ""
-    echo -e "${PURPLE}📚 Documentation:${NC}"
-    echo "• README: /opt/algoritmit/algoritmit-ubuntu-server-v4.0-novice/README.md"
-    echo "• Quick Start: /opt/algoritmit/algoritmit-ubuntu-server-v4.0-novice/QUICK_START.md"
-    echo ""
-    echo -e "${CYAN}🎯 For Novice Traders:${NC}"
-    echo "• Start with LEARNING_MODE=true in .env"
-    echo "• Use small position sizes (0.01-0.1 WLD)"
-    echo "• Monitor performance for 24-48 hours"
-    echo "• Enable auto-trading only after learning period"
-    echo ""
-    echo -e "${GREEN}🚀 Happy Trading!${NC}"
+    print_success "🎉 ALGORITMIT Trading Bot installation completed!"
+    echo
+    echo "📁 Installation directory: $INSTALL_DIR"
+    echo "🔧 Service name: $SERVICE_NAME"
+    echo "👤 Service user: $SERVICE_USER"
+    echo
+    echo "📋 Next steps:"
+    echo "1. Configure the bot: nano $INSTALL_DIR/.env"
+    echo "2. Start the service: systemctl start $SERVICE_NAME"
+    echo "3. Check status: systemctl status $SERVICE_NAME"
+    echo "4. View logs: journalctl -u $SERVICE_NAME -f"
+    echo
+    echo "🛠️  Management commands:"
+    echo "  algoritmit start    - Start the bot"
+    echo "  algoritmit stop     - Stop the bot"
+    echo "  algoritmit restart  - Restart the bot"
+    echo "  algoritmit status   - Check bot status"
+    echo "  algoritmit logs     - View live logs"
+    echo "  algoritmit config   - Edit configuration"
+    echo
+    echo "⚠️  IMPORTANT: Configure your .env file before starting the bot!"
+    echo "   - Set your private key"
+    echo "   - Configure RPC settings"
+    echo "   - Set up Telegram notifications (optional)"
+    echo
+    echo "📚 Documentation: $INSTALL_DIR/README.md"
+    echo "🆘 Support: https://github.com/notevayasconadan/eva/issues"
 }
 
 # Main installation function
 main() {
-    print_banner
+    echo "🤖 ALGORITMIT Ubuntu Clean Installer v4.0"
+    echo "=========================================="
+    echo
     
-    print_status "Starting ALGORITMIT Ubuntu Clean Installation..."
-    echo ""
-    
-    # Check requirements
     check_root
     check_ubuntu_version
     check_system_requirements
-    
-    # Fix package system issues first
     fix_package_system
-    
-    # Installation steps
     update_system_safely
     install_dependencies
-    create_installation_directory
     download_package
     install_node_dependencies
     install_holdstation_sdk
@@ -732,8 +571,6 @@ main() {
     setup_log_rotation
     create_start_script
     create_management_script
-    
-    # Show summary
     show_installation_summary
 }
 
