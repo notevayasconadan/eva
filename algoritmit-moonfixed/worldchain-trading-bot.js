@@ -11,7 +11,7 @@ const AdvancedTradingEngine = require('./trading-engine');
 const TokenDiscoveryService = require('./token-discovery');
 const TelegramNotifications = require('./telegram-notifications');
 const { UltraFastStrategyManager } = require('./algoritmit-strategy');
-const { UltraFastDIPStrategy, UltraFastStrategyManager: UltraFastDIPStrategyManager } = require('./ultra-fast-dip-strategy');
+const UltraFastDIPExecutor = require('./ultra-fast-dip-executor');
 require('dotenv').config();
 
 class WorldchainTradingBot {
@@ -34,7 +34,7 @@ class WorldchainTradingBot {
         
         // OPUS 4.1: Initialize ultra-fast DIP strategy manager
         this.strategyManager = new UltraFastStrategyManager(this.tradingEngine);
-        this.ultraFastStrategyManager = new UltraFastDIPStrategyManager(this.tradingEngine);
+        this.ultraFastDIPExecutor = new UltraFastDIPExecutor(this.provider, this.config);
         this.dipStrategy = null;
         
         // Initialize ultra-fast settings
@@ -9676,7 +9676,7 @@ class WorldchainTradingBot {
         console.log(chalk.white(`⚡ Max Slippage: ${maxSlippage}%`));
         
         try {
-            const result = await this.tradingEngine.executeUltraFastDIPBuy(wallet, tokenAddress, amountInWLD, maxSlippage);
+            const result = await this.ultraFastDIPExecutor.executeUltraFastDIP(wallet, tokenAddress, amountInWLD);
             
             if (result.success) {
                 console.log(chalk.green(`✅ Ultra-Fast DIP Buy Executed!`));
@@ -9737,12 +9737,12 @@ class WorldchainTradingBot {
         }
     }
 
-    async executeBatchUltraFastDIPBuys(trades) {
+    async executeBatchUltraFastDIPBuys(wallet, trades) {
         console.log(chalk.cyan('🚀 OPUS 4.1: Executing Batch Ultra-Fast DIP Buys...'));
         console.log(chalk.white(`📦 Total Trades: ${trades.length}`));
         
         try {
-            const result = await this.tradingEngine.executeBatchUltraFastDIPBuys(trades);
+            const result = await this.ultraFastDIPExecutor.executeBatchUltraFastDIPs(wallet, trades);
             
             console.log(chalk.green(`✅ Batch Ultra-Fast DIP Buys Completed!`));
             console.log(chalk.white(`⚡ Total Time: ${result.totalTime}ms`));
@@ -9773,7 +9773,7 @@ class WorldchainTradingBot {
         console.log(chalk.white(`📉 Dip Threshold: ${dipThreshold}%`));
         
         try {
-            const result = await this.tradingEngine.detectAndExecuteDIP(wallet, tokenAddress, amountInWLD, dipThreshold);
+            const result = await this.ultraFastDIPExecutor.detectAndExecuteDIP(wallet, tokenAddress, amountInWLD, []);
             
             if (result.dipDetected && result.success) {
                 console.log(chalk.green(`🎯 DIP Detected and Executed!`));
@@ -9976,7 +9976,7 @@ class WorldchainTradingBot {
         
         console.log(chalk.yellow(`\n🚀 Executing ${trades.length} Ultra-Fast DIP Buys...`));
         
-        const result = await this.executeBatchUltraFastDIPBuys(trades);
+        const result = await this.executeBatchUltraFastDIPBuys(wallet, trades);
         
         await this.getUserInput('\nPress Enter to continue...');
     }
