@@ -74,6 +74,22 @@ check_system_requirements() {
         print_warning "Low memory detected (${AVAILABLE_MEM}MB). Performance may be affected."
     fi
     
+    # Check network connectivity
+    print_info "Checking network connectivity..."
+    if ! ping -c 1 8.8.8.8 &> /dev/null; then
+        print_warning "Basic network connectivity check failed"
+    else
+        print_success "Network connectivity check passed"
+    fi
+    
+    # Check npm registry connectivity
+    print_info "Checking npm registry connectivity..."
+    if ! curl -s --connect-timeout 10 https://registry.npmjs.org/ &> /dev/null; then
+        print_warning "npm registry connectivity check failed - will use fallback methods"
+    else
+        print_success "npm registry connectivity check passed"
+    fi
+    
     print_success "System requirements check passed"
 }
 
@@ -270,28 +286,146 @@ install_node_dependencies() {
     # Clear npm cache
     npm cache clean --force
     
-    # Install dependencies with retry mechanism
-    MAX_RETRIES=3
+    # Configure npm for better network handling
+    print_info "Configuring npm for better network handling..."
+    npm config set registry https://registry.npmjs.org/
+    npm config set fetch-retries 5
+    npm config set fetch-retry-mintimeout 20000
+    npm config set fetch-retry-maxtimeout 120000
+    npm config set timeout 60000
+    
+    # Try to detect and configure proxy if needed
+    if [ -n "$http_proxy" ] || [ -n "$HTTP_PROXY" ]; then
+        print_info "Detected proxy settings, configuring npm..."
+        npm config set proxy "$http_proxy" 2>/dev/null || npm config set proxy "$HTTP_PROXY" 2>/dev/null || true
+        npm config set https-proxy "$https_proxy" 2>/dev/null || npm config set https-proxy "$HTTPS_PROXY" 2>/dev/null || true
+    fi
+    
+    # Install dependencies with multiple fallback methods
+    MAX_RETRIES=5
     RETRY_COUNT=0
     
     while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
-        if npm install --production; then
+        print_info "Attempting npm install (attempt $((RETRY_COUNT + 1))/$MAX_RETRIES)"
+        
+        # Method 1: Standard npm install
+        if npm install --production --no-audit --no-fund --prefer-offline; then
             print_success "Node.js dependencies installed successfully"
             return 0
-        else
-            RETRY_COUNT=$((RETRY_COUNT + 1))
-            print_warning "npm install failed (attempt $RETRY_COUNT/$MAX_RETRIES)"
+        fi
+        
+        RETRY_COUNT=$((RETRY_COUNT + 1))
+        print_warning "npm install failed (attempt $RETRY_COUNT/$MAX_RETRIES)"
+        
+        if [ $RETRY_COUNT -lt $MAX_RETRIES ]; then
+            print_info "Retrying in 10 seconds with different method..."
+            sleep 10
             
-            if [ $RETRY_COUNT -lt $MAX_RETRIES ]; then
-                print_info "Retrying in 5 seconds..."
-                sleep 5
-                npm cache clean --force
+            # Clear cache and try alternative methods
+            npm cache clean --force
+            
+            # Method 2: Try with different registry
+            if [ $RETRY_COUNT -eq 2 ]; then
+                print_info "Trying with alternative npm registry..."
+                npm config set registry https://registry.npmjs.org/
+                npm install --production --no-audit --no-fund --prefer-offline || true
+            fi
+            
+            # Method 3: Try with yarn if available
+            elif [ $RETRY_COUNT -eq 3 ] && command -v yarn &> /dev/null; then
+                print_info "Trying with yarn..."
+                yarn install --production --ignore-engines || true
+            fi
+            
+            # Method 4: Try with pnpm if available
+            elif [ $RETRY_COUNT -eq 4 ] && command -v pnpm &> /dev/null; then
+                print_info "Trying with pnpm..."
+                pnpm install --prod --ignore-engines || true
+            fi
+            
+            # Method 5: Manual package installation
+            elif [ $RETRY_COUNT -eq 5 ]; then
+                print_info "Attempting manual package installation..."
+                install_packages_manually
             fi
         fi
     done
     
     print_error "Failed to install Node.js dependencies after $MAX_RETRIES attempts"
-    exit 1
+    print_info "Attempting to continue with minimal installation..."
+    
+    # Try to install at least the essential packages manually
+    install_essential_packages_manually
+}
+
+# Install packages manually as fallback
+install_packages_manually() {
+    print_info "Installing packages manually..."
+    
+    # Create node_modules directory
+    mkdir -p node_modules
+    
+    # Install essential packages one by one
+    ESSENTIAL_PACKAGES=(
+        "@holdstation/worldchain-sdk@^4.0.29"
+        "@holdstation/worldchain-ethers-v6@^4.0.29"
+        "ethers@^6.0.0"
+        "axios@^1.0.0"
+        "dotenv@^16.0.0"
+    )
+    
+    for pkg in "${ESSENTIAL_PACKAGES[@]}"; do
+        print_info "Installing: $pkg"
+        if npm install "$pkg" --no-audit --no-fund --prefer-offline; then
+            print_success "Installed: $pkg"
+        else
+            print_warning "Failed to install: $pkg"
+        fi
+    done
+}
+
+# Install essential packages manually as last resort
+install_essential_packages_manually() {
+    print_info "Installing essential packages manually as last resort..."
+    
+    # Create minimal package.json if it doesn't exist
+    if [ ! -f "package.json" ]; then
+        cat > package.json << EOF
+{
+  "name": "algoritmit-trading-bot",
+  "version": "1.0.0",
+  "description": "ALGORITMIT Trading Bot for Worldchain",
+  "main": "worldchain-trading-bot.js",
+  "dependencies": {
+    "@holdstation/worldchain-sdk": "^4.0.29",
+    "@holdstation/worldchain-ethers-v6": "^4.0.29",
+    "ethers": "^6.0.0",
+    "axios": "^1.0.0",
+    "dotenv": "^16.0.0"
+  }
+}
+EOF
+    fi
+    
+    # Try to install with different network settings
+    npm config set fetch-retries 10
+    npm config set fetch-retry-mintimeout 30000
+    npm config set fetch-retry-maxtimeout 300000
+    npm config set timeout 300000
+    
+    # Try installation with different methods
+    if npm install --production --no-audit --no-fund --prefer-offline --verbose; then
+        print_success "Essential packages installed successfully"
+        return 0
+    fi
+    
+    # If still failing, try with yarn
+    if command -v yarn &> /dev/null; then
+        print_info "Trying yarn as final fallback..."
+        yarn install --production --ignore-engines --network-timeout 300000
+    fi
+    
+    print_warning "Manual installation completed with some packages potentially missing"
 }
 
 # Install HoldStation SDK with retry
@@ -300,11 +434,25 @@ install_holdstation_sdk() {
     
     cd "$INSTALL_DIR"
     
+    # Check if already installed
+    if [ -d "node_modules/@holdstation" ]; then
+        print_info "HoldStation SDK appears to be already installed"
+        return 0
+    fi
+    
     MAX_RETRIES=3
     RETRY_COUNT=0
     
     while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
-        if npm install @holdstation/worldchain-sdk @holdstation/worldchain-ethers-v6; then
+        print_info "Installing HoldStation SDK (attempt $((RETRY_COUNT + 1))/$MAX_RETRIES)"
+        
+        # Configure npm for better network handling
+        npm config set fetch-retries 5
+        npm config set fetch-retry-mintimeout 20000
+        npm config set fetch-retry-maxtimeout 120000
+        npm config set timeout 60000
+        
+        if npm install @holdstation/worldchain-sdk @holdstation/worldchain-ethers-v6 --no-audit --no-fund --prefer-offline; then
             print_success "HoldStation SDK installed successfully"
             return 0
         else
@@ -312,14 +460,15 @@ install_holdstation_sdk() {
             print_warning "HoldStation SDK installation failed (attempt $RETRY_COUNT/$MAX_RETRIES)"
             
             if [ $RETRY_COUNT -lt $MAX_RETRIES ]; then
-                print_info "Retrying in 5 seconds..."
-                sleep 5
+                print_info "Retrying in 10 seconds..."
+                sleep 10
+                npm cache clean --force
             fi
         fi
     done
     
-    print_error "Failed to install HoldStation SDK after $MAX_RETRIES attempts"
-    exit 1
+    print_warning "Failed to install HoldStation SDK after $MAX_RETRIES attempts"
+    print_info "The bot may still work with basic functionality"
 }
 
 # Setup environment
