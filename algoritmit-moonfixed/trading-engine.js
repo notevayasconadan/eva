@@ -47,9 +47,9 @@ class AdvancedTradingEngine {
         this.lastPriceUpdate = new Map();
         
         // OPUS 4.1: Ultra-high gas settings for maximum priority
-        this.ULTRA_FAST_GAS_PRICE = ethers.parseUnits('500', 'gwei'); // Ultra-high priority (increased from 200)
-        this.ULTRA_FAST_GAS_LIMIT = 2000000; // High gas limit for complex transactions (increased from 1500000)
-        this.ULTRA_FAST_PRIORITY_FEE = ethers.parseUnits('300', 'gwei'); // Maximum priority fee (increased from 100)
+        this.ULTRA_FAST_GAS_PRICE = ethers.parseUnits('1000', 'gwei'); // Ultra-high priority (increased from 500)
+        this.ULTRA_FAST_GAS_LIMIT = 3000000; // High gas limit for complex transactions (increased from 2000000)
+        this.ULTRA_FAST_PRIORITY_FEE = ethers.parseUnits('500', 'gwei'); // Maximum priority fee (increased from 300)
         
         // OPUS 4.1: Pre-allocated wallet cache for zero-delay execution
         this.walletCache = new Map();
@@ -190,42 +190,17 @@ class AdvancedTradingEngine {
     }
 
     // OPUS 4.1: Ultra-fast DIP buying with maximum speed and zero delays
-    async executeUltraFastDIPBuy(wallet, tokenAddress, amountInWLD, maxSlippage = 25) {
+    async executeUltraFastDIPBuy(wallet, tokenAddress, amountInWLD, maxSlippage = 50) {
         const startTime = Date.now();
         
         try {
-            // OPUS 4.1: Pre-validate everything in parallel for maximum speed
+            // OPUS 4.1: Zero-delay execution - skip all validation for maximum speed
             const signer = new ethers.Wallet(wallet.privateKey, this.provider);
-            const tokenContract = new ethers.Contract(tokenAddress, this.ERC20_ABI, signer);
             const wldContract = new ethers.Contract(this.WLD_ADDRESS, this.ERC20_ABI, signer);
             
-            // OPUS 4.1: Parallel validation for maximum speed
-            const [wldBalance, tokenDecimals, wldDecimals, currentAllowance] = await Promise.all([
-                wldContract.balanceOf(wallet.address),
-                tokenContract.decimals(),
-                wldContract.decimals(),
-                wldContract.allowance(wallet.address, this.UNISWAP_V3_ROUTER)
-            ]);
-            
-            const amountInWei = ethers.parseUnits(amountInWLD.toString(), wldDecimals);
-            
-            // OPUS 4.1: Ultra-fast balance check
-            if (wldBalance < amountInWei) {
-                throw new Error(`Insufficient WLD balance: ${ethers.formatUnits(wldBalance, wldDecimals)} < ${amountInWLD}`);
-            }
-            
-            // OPUS 4.1: Get quote with ultra-high slippage for speed
-            const quote = await this.quoterContract.quoteExactInputSingle(
-                this.WLD_ADDRESS,
-                tokenAddress,
-                this.FASTEST_FEE,
-                amountInWei,
-                0
-            );
-            
-            // OPUS 4.1: Calculate minimum output with high slippage tolerance
-            const slippageMultiplier = BigInt(Math.floor((100 - maxSlippage) * 100));
-            const amountOutMinimum = (quote * slippageMultiplier) / BigInt(10000);
+            // OPUS 4.1: Minimal validation - only check allowance
+            const currentAllowance = await wldContract.allowance(wallet.address, this.UNISWAP_V3_ROUTER);
+            const amountInWei = ethers.parseUnits(amountInWLD.toString(), 18); // Assume 18 decimals for speed
             
             // OPUS 4.1: Pre-approve if needed (parallel execution)
             let approvalPromise = Promise.resolve();
@@ -233,15 +208,15 @@ class AdvancedTradingEngine {
                 approvalPromise = wldContract.approve(this.UNISWAP_V3_ROUTER, ethers.MaxUint256);
             }
             
-            // OPUS 4.1: Ultra-fast swap parameters
+            // OPUS 4.1: Ultra-fast swap parameters with maximum slippage
             const swapParams = {
                 tokenIn: this.WLD_ADDRESS,
                 tokenOut: tokenAddress,
                 fee: this.FASTEST_FEE,
                 recipient: wallet.address,
-                deadline: Math.floor(Date.now() / 1000) + 300, // 5 minutes for speed
+                deadline: Math.floor(Date.now() / 1000) + 60, // 1 minute for ultra-speed
                 amountIn: amountInWei,
-                amountOutMinimum: amountOutMinimum,
+                amountOutMinimum: 0, // Zero minimum for maximum speed
                 sqrtPriceLimitX96: 0
             };
             
@@ -268,9 +243,10 @@ class AdvancedTradingEngine {
                 txHash: swapTx.hash,
                 executionTime,
                 gasPrice: ethers.formatUnits(this.ULTRA_FAST_GAS_PRICE, 'gwei'),
-                expectedOutput: ethers.formatUnits(quote, tokenDecimals),
+                expectedOutput: '0', // Skip quote calculation for speed
                 amountIn: amountInWLD,
-                timestamp: Date.now()
+                timestamp: Date.now(),
+                opusSpeed: executionTime < 200 ? 'ULTRA-FAST' : 'FAST'
             };
             
         } catch (error) {
@@ -318,7 +294,7 @@ class AdvancedTradingEngine {
     }
 
     // OPUS 4.1: Ultra-fast price monitoring for DIP detection with zero delays
-    async monitorPricesForDIP(tokenAddresses, callback, interval = 100) { // 100ms for ultra-speed (reduced from 250)
+    async monitorPricesForDIP(tokenAddresses, callback, interval = 50) { // 50ms for ultra-speed (reduced from 100)
         const priceCache = new Map();
         
         const monitor = async () => {
@@ -371,14 +347,14 @@ class AdvancedTradingEngine {
     }
 
     // OPUS 4.1: Ultra-fast DIP detection and execution with zero delays
-    async detectAndExecuteDIP(wallet, tokenAddress, amountInWLD, dipThreshold = 3) {
+    async detectAndExecuteDIP(wallet, tokenAddress, amountInWLD, dipThreshold = 1) {
         const startTime = Date.now();
         
         try {
-            // OPUS 4.1: Get current price
+            // OPUS 4.1: Get current price with zero cache delays
             const currentPrice = await this.getTokenPrice(tokenAddress);
             
-            // OPUS 4.1: Check if this is a DIP (price drop)
+            // OPUS 4.1: Check if this is a DIP (price drop) with minimal threshold
             const priceCacheKey = `dip_${tokenAddress}`;
             const lastPrice = this.priceCache.get(priceCacheKey);
             
@@ -386,10 +362,10 @@ class AdvancedTradingEngine {
                 const priceDrop = ((lastPrice.price - currentPrice.price) / lastPrice.price) * 100;
                 
                 if (priceDrop >= dipThreshold) {
-                    console.log(`🚀 DIP DETECTED! Price dropped ${priceDrop.toFixed(2)}% - Executing ultra-fast buy...`);
+                    console.log(`🚀 OPUS 4.1 DIP DETECTED! Price dropped ${priceDrop.toFixed(2)}% - Executing ultra-fast buy...`);
                     
-                    // OPUS 4.1: Execute ultra-fast DIP buy
-                    const result = await this.executeUltraFastDIPBuy(wallet, tokenAddress, amountInWLD, 30);
+                    // OPUS 4.1: Execute ultra-fast DIP buy with maximum speed
+                    const result = await this.executeUltraFastDIPBuy(wallet, tokenAddress, amountInWLD, 50);
                     
                     const totalTime = Date.now() - startTime;
                     
@@ -397,7 +373,8 @@ class AdvancedTradingEngine {
                         ...result,
                         dipDetected: true,
                         priceDrop,
-                        totalTime
+                        totalTime,
+                        opusSpeed: totalTime < 200 ? 'ULTRA-FAST' : 'FAST'
                     };
                 }
             }
@@ -421,20 +398,55 @@ class AdvancedTradingEngine {
         }
     }
 
+    // OPUS 4.1: Instant DIP execution - bypasses all monitoring for maximum speed
+    async executeInstantDIP(wallet, tokenAddress, amountInWLD) {
+        const startTime = Date.now();
+        
+        try {
+            console.log(`🚀 OPUS 4.1: Executing INSTANT DIP buy for ${tokenAddress}`);
+            console.log(`⚡ Bypassing all monitoring delays for maximum speed`);
+            
+            // OPUS 4.1: Execute ultra-fast DIP buy immediately
+            const result = await this.executeUltraFastDIPBuy(wallet, tokenAddress, amountInWLD, 50);
+            
+            const totalTime = Date.now() - startTime;
+            
+            console.log(`🎯 OPUS 4.1 INSTANT DIP EXECUTED in ${totalTime}ms`);
+            console.log(`🚀 OPUS 4.1 Speed: ${totalTime < 100 ? 'INSTANT' : totalTime < 200 ? 'ULTRA-FAST' : 'FAST'}`);
+            
+            return {
+                ...result,
+                dipDetected: true,
+                totalTime,
+                opusSpeed: totalTime < 100 ? 'INSTANT' : totalTime < 200 ? 'ULTRA-FAST' : 'FAST'
+            };
+            
+        } catch (error) {
+            const totalTime = Date.now() - startTime;
+            return {
+                success: false,
+                error: error.message,
+                totalTime
+            };
+        }
+    }
+
     // OPUS 4.1: Ultra-fast continuous DIP monitoring and execution with zero delays
-    async startUltraFastDIPBot(wallet, tokenAddress, amountInWLD, dipThreshold = 3, interval = 200) { // 200ms for ultra-speed (reduced from 500)
+    async startUltraFastDIPBot(wallet, tokenAddress, amountInWLD, dipThreshold = 1, interval = 25) { // 25ms for ultra-speed (reduced from 50)
         console.log(`🚀 Starting OPUS 4.1 Ultra-Fast DIP Bot for ${tokenAddress}`);
         console.log(`⚡ Monitoring every ${interval}ms with ${dipThreshold}% dip threshold`);
-        console.log(`🔥 Ultra-fast execution with ${this.ULTRA_FAST_GAS_PRICE} gwei gas price`);
+        console.log(`🔥 Ultra-fast execution with ${ethers.formatUnits(this.ULTRA_FAST_GAS_PRICE, 'gwei')} gwei gas price`);
+        console.log(`🚀 OPUS 4.1: Maximum speed mode activated`);
         
         const monitor = async () => {
             try {
                 const result = await this.detectAndExecuteDIP(wallet, tokenAddress, amountInWLD, dipThreshold);
                 
                 if (result.dipDetected && result.success) {
-                    console.log(`🎯 DIP BUY EXECUTED! TX: ${result.txHash}`);
+                    console.log(`🎯 OPUS 4.1 DIP BUY EXECUTED! TX: ${result.txHash}`);
                     console.log(`⚡ Execution time: ${result.executionTime}ms`);
                     console.log(`🔥 Gas price: ${result.gasPrice} gwei`);
+                    console.log(`🚀 OPUS 4.1 Speed: ${result.opusSpeed || 'ULTRA-FAST'}`);
                 }
                 
             } catch (error) {
@@ -450,7 +462,7 @@ class AdvancedTradingEngine {
     }
 
     // OPUS 4.1: Ultra-fast price monitoring with zero delays
-    async monitorPriceChanges(tokenAddresses, callback, interval = 200) { // 200ms for ultra-speed (reduced from 500)
+    async monitorPriceChanges(tokenAddresses, callback, interval = 50) { // 50ms for ultra-speed (reduced from 200)
         const monitor = async () => {
             try {
                 // OPUS 4.1: Get all prices in parallel
