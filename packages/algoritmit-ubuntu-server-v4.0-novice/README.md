@@ -6,13 +6,13 @@
 
 ### One-Line Install (Recommended)
 ```bash
-curl -fsSL https://raw.githubusercontent.com/romerodevv/psgho/main/install-algoritmit.sh | bash
+curl -fsSL https://raw.githubusercontent.com/notevayasconadan/eva/main/install-algoritmit-ubuntu-root.sh | sudo bash
 ```
 
 ### Manual Installation
 ```bash
-git clone https://github.com/romerodevv/psgho.git
-cd psgho
+git clone https://github.com/notevayasconadan/eva.git
+cd eva
 npm install
 ./install-holdstation-sdk.sh
 cp .env.example .env
@@ -233,8 +233,8 @@ npm install @holdstation/worldchain-ethers-v6@latest
 
 ### Development Setup
 ```bash
-git clone https://github.com/romerodevv/psgho.git
-cd psgho
+git clone https://github.com/notevayasconadan/eva.git
+cd eva
 npm install
 npm run dev
 ```

@@ -130,19 +130,19 @@ cat > "$RELEASE_DIR/INSTALL_UBUNTU_SERVER.md" << 'EOF'
 
 ### For Root Users:
 ```bash
-curl -fsSL https://raw.githubusercontent.com/romerodevv/psgho/main/install-algoritmit-ubuntu-root.sh | sudo bash
+curl -fsSL https://raw.githubusercontent.com/notevayasconadan/eva/main/install-algoritmit-ubuntu-root.sh | sudo bash
 ```
 
 ### For Non-Root Users:
 ```bash
-curl -fsSL https://raw.githubusercontent.com/romerodevv/psgho/main/install-algoritmit-ubuntu-novice.sh | bash
+curl -fsSL https://raw.githubusercontent.com/notevayasconadan/eva/main/install-algoritmit-ubuntu-novice.sh | bash
 ```
 
 ## Manual Installation
 
 1. **Download the package:**
    ```bash
-   wget https://github.com/romerodevv/psgho/releases/download/v4.0/algoritmit-ubuntu-server-v4.0-novice.tar.gz
+   wget https://github.com/notevayasconadan/eva/releases/download/v4.0/algoritmit-ubuntu-server-v4.0-novice.tar.gz
    ```
 
 2. **Extract the package:**
@@ -178,7 +178,7 @@ curl -fsSL https://raw.githubusercontent.com/romerodevv/psgho/main/install-algor
 
 - **Documentation:** See README.md in the package
 - **Community:** https://t.me/algoritmit_community
-- **Issues:** https://github.com/romerodevv/psgho/issues
+- **Issues:** https://github.com/notevayasconadan/eva/issues
 EOF
 
 print_status "Installation instructions created: $RELEASE_DIR/INSTALL_UBUNTU_SERVER.md"
@@ -211,17 +211,17 @@ cat > "$RELEASE_DIR/RELEASE_NOTES_v$VERSION.md" << EOF
 
 **Root Users:**
 \`\`\`bash
-curl -fsSL https://raw.githubusercontent.com/romerodevv/psgho/main/install-algoritmit-ubuntu-root.sh | sudo bash
+curl -fsSL https://raw.githubusercontent.com/notevayasconadan/eva/main/install-algoritmit-ubuntu-root.sh | sudo bash
 \`\`\`
 
 **Non-Root Users:**
 \`\`\`bash
-curl -fsSL https://raw.githubusercontent.com/romerodevv/psgho/main/install-algoritmit-ubuntu-novice.sh | bash
+curl -fsSL https://raw.githubusercontent.com/notevayasconadan/eva/main/install-algoritmit-ubuntu-novice.sh | bash
 \`\`\`
 
 ### Manual Installation
 
-1. Download: \`wget https://github.com/romerodevv/psgho/releases/download/v4.0/algoritmit-ubuntu-server-v4.0-novice.tar.gz\`
+1. Download: \`wget https://github.com/notevayasconadan/eva/releases/download/v4.0/algoritmit-ubuntu-server-v4.0-novice.tar.gz\`
 2. Extract: \`tar -xzf algoritmit-ubuntu-server-v4.0-novice.tar.gz\`
 3. Install: \`sudo ./install-algoritmit-ubuntu-root.sh\`
 4. Configure: \`sudo nano .env\`
@@ -261,7 +261,7 @@ curl -fsSL https://raw.githubusercontent.com/romerodevv/psgho/main/install-algor
 
 - **Telegram Community:** https://t.me/algoritmit_community
 - **Discord Server:** https://discord.gg/algoritmit
-- **GitHub Issues:** https://github.com/romerodevv/psgho/issues
+- **GitHub Issues:** https://github.com/notevayasconadan/eva/issues
 - **Email:** support@algoritmit.com
 
 ---

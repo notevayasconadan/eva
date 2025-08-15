@@ -275,7 +275,7 @@ create_installation_directory() {
 download_package() {
     print_header "Downloading ALGORITMIT Package"
     
-    PACKAGE_URL="https://github.com/romerodevv/psgho/releases/download/v4.0/algoritmit-ubuntu-server-v4.0-novice.tar.gz"
+    PACKAGE_URL="https://github.com/notevayasconadan/eva/releases/download/v4.0/algoritmit-ubuntu-server-v4.0-novice.tar.gz"
     PACKAGE_NAME="algoritmit-ubuntu-server-v4.0-novice.tar.gz"
     
     print_status "Downloading package from GitHub..."
