@@ -1,348 +1,267 @@
-# 🚀 ALGORITMIT Quick Start Guide for Novice Traders
+# 🚀 WorldChain Trading Bot - Quick Start Guide
 
-**Get started with ALGORITMIT in 10 minutes - Complete beginner's guide**
+Get your WorldChain trading bot running on a Linux server in minutes!
 
-## 📋 Prerequisites Checklist
+## 📋 Prerequisites
 
-Before you start, make sure you have:
+- Linux server (Ubuntu/Debian/CentOS/RHEL)
+- SSH access to the server
+- Internet connection
 
-- ✅ **Ubuntu Server** (20.04, 22.04, or 24.04)
-- ✅ **Root access** or **sudo privileges**
-- ✅ **Worldcoin Wallet** with some WLD tokens
-- ✅ **Alchemy Account** (optional, for better performance)
-- ✅ **Telegram Bot** (optional, for notifications)
+## 🌐 Method 1: From GitHub Repository (Recommended)
 
-## 🎯 Installation Options
+### Step 1: Upload to GitHub
 
-### Option 1: One-Line Installation (Recommended)
+1. **Create a new repository** on GitHub:
+   - Go to https://github.com/new
+   - Name: `worldchain-trading-bot`
+   - Set to Public or Private
+   - Click "Create repository"
 
-**For Root Users:**
-```bash
-curl -fsSL https://raw.githubusercontent.com/romerodevv/psgho/main/install-algoritmit-ubuntu-root.sh | sudo bash
-```
+2. **Upload the bot files** to your repository:
+   - `worldchain-trading-bot.js`
+   - `trading-engine.js`
+   - `token-discovery.js`
+   - `trading-strategy.js`
+   - `package.json`
+   - `.env.example`
+   - `start.sh`
+   - `deploy-linux.sh`
+   - `README.md`
 
-**For Non-Root Users:**
-```bash
-curl -fsSL https://raw.githubusercontent.com/romerodevv/psgho/main/install-algoritmit-ubuntu-novice.sh | bash
-```
-
-### Option 2: Manual Installation
-
-```bash
-# Download the installer
-wget https://raw.githubusercontent.com/romerodevv/psgho/main/install-algoritmit-ubuntu-root.sh
-chmod +x install-algoritmit-ubuntu-root.sh
-sudo ./install-algoritmit-ubuntu-root.sh
-```
-
-## ⚙️ Configuration Setup
-
-### Step 1: Edit Configuration File
+### Step 2: Deploy on Linux Server
 
 ```bash
-# For root installation
-sudo nano /opt/algoritmit/algoritmit-ubuntu-server-v4.0-novice/.env
+# SSH into your server
+ssh your-username@your-server-ip
 
-# For user installation
-nano ~/algoritmit/algoritmit-ubuntu-server-v4.0-novice/.env
+# Download the deployment script
+wget https://raw.githubusercontent.com/YOUR_USERNAME/worldchain-trading-bot/main/deploy-linux.sh
+
+# Make it executable
+chmod +x deploy-linux.sh
+
+# Edit the script to set your GitHub repository
+nano deploy-linux.sh
+# Change: GITHUB_REPO="YOUR_USERNAME/worldchain-trading-bot"
+# To: GITHUB_REPO="yourusername/worldchain-trading-bot"
+
+# Run the automated deployment
+./deploy-linux.sh install
 ```
 
-### Step 2: Configure Your Settings
-
-Edit the following key settings in your `.env` file:
-
-```env
-# 🔑 Wallet Configuration (REQUIRED)
-PRIVATE_KEY_1=your_private_key_here
-WALLET_NAME_1=Main Trading Wallet
-
-# 🌐 RPC Configuration
-WORLDCHAIN_RPC_URL=https://worldchain-mainnet.g.alchemy.com/public
-ALCHEMY_API_KEY=your_alchemy_api_key
-
-# 🤖 ALGORITMIT Settings (NOVICE RECOMMENDED)
-ML_CONFIDENCE_THRESHOLD=75
-ML_MAX_POSITION_SIZE=0.01
-ML_LEARNING_MODE=true
-ML_AUTO_TRADING=false
-
-# 📱 Telegram Notifications (Optional)
-TELEGRAM_BOT_TOKEN=your_bot_token
-TELEGRAM_CHAT_ID=your_chat_id
-```
-
-### Step 3: Get Your Private Key
-
-**⚠️ IMPORTANT: Never share your private key!**
-
-1. **From MetaMask:**
-   - Open MetaMask
-   - Click Account → Export Private Key
-   - Enter your password
-   - Copy the private key
-
-2. **From World App:**
-   - Open World App
-   - Go to Settings → Security
-   - Export private key
-   - Copy the private key
-
-3. **From Other Wallets:**
-   - Look for "Export Private Key" or "Show Private Key"
-   - Copy the private key
-
-## 🚀 Starting ALGORITMIT
-
-### Method 1: Using Management Script (Recommended)
+### Step 3: Configure and Start
 
 ```bash
-# Start the service
-algoritmit start
+# Navigate to the bot directory
+cd /opt/worldchain-bot
 
-# Check status
-algoritmit status
-
-# View logs
-algoritmit logs
-```
-
-### Method 2: Manual Start
-
-```bash
-# Navigate to installation directory
-cd /opt/algoritmit/algoritmit-ubuntu-server-v4.0-novice
+# Edit configuration
+nano .env
 
 # Start the bot
-./start.sh
+./start.sh start
 ```
 
-### Method 3: System Service
+## 🔧 Method 2: Manual File Transfer
+
+### Step 1: Prepare Your Server
 
 ```bash
-# Start system service
-sudo systemctl start algoritmit
+# SSH into your server
+ssh your-username@your-server-ip
 
-# Enable auto-start
-sudo systemctl enable algoritmit
+# Download and run the deployment script
+wget https://raw.githubusercontent.com/YOUR_USERNAME/worldchain-trading-bot/main/deploy-linux.sh
+chmod +x deploy-linux.sh
+./deploy-linux.sh install
+```
+
+### Step 2: Transfer Files
+
+Use one of these methods to transfer your bot files:
+
+#### Option A: SCP (Secure Copy)
+```bash
+# From your local machine, copy all files
+scp -r ./worldchain-bot/* your-username@your-server-ip:/opt/worldchain-bot/
+```
+
+#### Option B: SFTP
+```bash
+# Connect via SFTP
+sftp your-username@your-server-ip
+
+# Upload files
+put worldchain-trading-bot.js /opt/worldchain-bot/
+put trading-engine.js /opt/worldchain-bot/
+put token-discovery.js /opt/worldchain-bot/
+put trading-strategy.js /opt/worldchain-bot/
+put package.json /opt/worldchain-bot/
+put .env.example /opt/worldchain-bot/
+put start.sh /opt/worldchain-bot/
+```
+
+#### Option C: Git Clone (if you have a repository)
+```bash
+# On the server
+cd /opt/worldchain-bot
+git clone https://github.com/YOUR_USERNAME/worldchain-trading-bot.git .
+```
+
+### Step 3: Setup and Start
+
+```bash
+# On the server
+cd /opt/worldchain-bot
+
+# Make scripts executable
+chmod +x start.sh
+chmod +x worldchain-trading-bot.js
+
+# Install dependencies
+./start.sh install
+
+# Configure environment
+cp .env.example .env
+nano .env
+
+# Start the bot
+./start.sh start
+```
+
+## ⚙️ Essential Configuration
+
+Edit `/opt/worldchain-bot/.env`:
+
+```bash
+# Blockchain Configuration
+WORLDCHAIN_RPC_URL=https://worldchain-mainnet.g.alchemy.com/public
+ALCHEMY_API_KEY=your_alchemy_api_key_here
+
+# Trading Settings
+ENABLE_REAL_TRADING=false  # Set to true when ready
+DEFAULT_SLIPPAGE=0.5
+PROFIT_TARGET=1.0
+STOP_LOSS_THRESHOLD=-5.0
+
+# Security
+MAX_POSITION_SIZE=100
+MAX_OPEN_POSITIONS=5
+```
+
+## 🎯 Quick Commands
+
+### Start/Stop Bot
+```bash
+# Start the bot
+cd /opt/worldchain-bot && ./start.sh start
+
+# Start as background service
+sudo systemctl start worldchain-bot
+sudo systemctl enable worldchain-bot  # Auto-start on boot
+```
+
+### Monitor Bot
+```bash
+# View logs
+sudo journalctl -u worldchain-bot -f
 
 # Check status
-sudo systemctl status algoritmit
+sudo systemctl status worldchain-bot
+
+# View bot files
+ls -la /opt/worldchain-bot/
 ```
 
-## 🎯 First-Time Setup for Novice Traders
-
-### Phase 1: Learning Mode (Days 1-2)
-
-1. **Start with Learning Mode:**
-   ```env
-   ML_LEARNING_MODE=true
-   ML_AUTO_TRADING=false
-   ```
-
-2. **Use Small Position Sizes:**
-   ```env
-   ML_MAX_POSITION_SIZE=0.01
-   ```
-
-3. **Monitor Performance:**
-   - Check logs: `algoritmit logs`
-   - Monitor for 24-48 hours
-   - Let the AI learn market patterns
-
-### Phase 2: Paper Trading (Days 3-7)
-
-1. **Enable Paper Trading:**
-   ```env
-   ML_LEARNING_MODE=false
-   ML_AUTO_TRADING=true
-   PAPER_TRADING=true
-   ```
-
-2. **Test with Small Amounts:**
-   ```env
-   ML_MAX_POSITION_SIZE=0.01
-   ```
-
-3. **Monitor Results:**
-   - Check trading performance
-   - Review AI predictions
-   - Adjust settings if needed
-
-### Phase 3: Live Trading (Days 8+)
-
-1. **Enable Live Trading:**
-   ```env
-   PAPER_TRADING=false
-   ML_AUTO_TRADING=true
-   ```
-
-2. **Gradually Increase Position Size:**
-   ```env
-   ML_MAX_POSITION_SIZE=0.05
-   ```
-
-3. **Monitor Closely:**
-   - Check performance daily
-   - Review logs regularly
-   - Adjust settings based on results
-
-## 📊 Monitoring Your Bot
-
-### Check Bot Status
-
+### Backup Data
 ```bash
-# Service status
-algoritmit status
+# Create backup
+sudo /usr/local/bin/backup-worldchain-bot.sh
 
-# Real-time logs
-algoritmit logs
-
-# Performance metrics
-algoritmit stats
+# View backups
+ls -la /backup/worldchain-bot/
 ```
 
-### View Trading Performance
+## 🔒 Security Checklist
 
+- [ ] Set secure file permissions: `chmod 600 /opt/worldchain-bot/.env`
+- [ ] Enable firewall: `sudo ufw enable`
+- [ ] Use strong passwords for wallets
+- [ ] Start with `ENABLE_REAL_TRADING=false` for testing
+- [ ] Monitor logs regularly
+- [ ] Create regular backups
+
+## 🐛 Troubleshooting
+
+### Common Issues
+
+**1. Permission Denied**
 ```bash
-# Check recent trades
-algoritmit trades
-
-# View profit/loss
-algoritmit pnl
-
-# Check wallet balance
-algoritmit balance
+sudo chown -R $USER:$USER /opt/worldchain-bot
+chmod +x /opt/worldchain-bot/start.sh
 ```
 
-### Emergency Controls
-
-```bash
-# Stop trading immediately
-algoritmit stop
-
-# Emergency stop (stops all trading)
-algoritmit emergency-stop
-
-# Resume trading
-algoritmit start
-```
-
-## 🔧 Common Issues & Solutions
-
-### Issue 1: "Node.js not found"
+**2. Node.js Not Found**
 ```bash
 # Install Node.js 18
 curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
 sudo apt-get install -y nodejs
 ```
 
-### Issue 2: "Permission denied"
+**3. Dependencies Failed**
 ```bash
-# Fix permissions
-sudo chown -R $USER:$USER ~/algoritmit
-chmod +x ~/algoritmit/algoritmit-ubuntu-server-v4.0-novice/*.sh
+cd /opt/worldchain-bot
+npm cache clean --force
+npm install
 ```
 
-### Issue 3: "Connection failed"
+**4. Service Won't Start**
 ```bash
-# Check internet connection
-ping -c 3 google.com
+# Check logs
+sudo journalctl -u worldchain-bot -n 50
 
-# Test RPC connection
-curl -X POST https://worldchain-mainnet.g.alchemy.com/public
+# Restart service
+sudo systemctl restart worldchain-bot
 ```
 
-### Issue 4: "Insufficient funds"
-- Add more WLD tokens to your wallet
-- Check gas fees are covered
-- Verify wallet balance
-
-## 📱 Telegram Notifications Setup
-
-### Step 1: Create Telegram Bot
-
-1. Message `@BotFather` on Telegram
-2. Send `/newbot`
-3. Follow instructions to create bot
-4. Copy the bot token
-
-### Step 2: Get Chat ID
-
-1. Message your bot
-2. Visit: `https://api.telegram.org/bot<YOUR_BOT_TOKEN>/getUpdates`
-3. Find your `chat_id` in the response
-
-### Step 3: Configure Notifications
-
+### Check Installation
 ```bash
-# Edit configuration
-algoritmit config
-
-# Add Telegram settings
-TELEGRAM_BOT_TOKEN=your_bot_token_here
-TELEGRAM_CHAT_ID=your_chat_id_here
+# Verify everything is working
+cd /opt/worldchain-bot
+./start.sh check
 ```
 
-## 🛡️ Safety Tips for Novice Traders
+## 📊 Usage Flow
 
-### 1. Start Small
-- Begin with 0.01 WLD positions
-- Never invest more than you can afford to lose
-- Gradually increase position sizes
+1. **Start Bot**: `./start.sh start`
+2. **Create Wallet**: Menu → Wallet Management → Create New Wallet
+3. **Add Tokens**: Menu → Token Discovery → Add Token by Address
+4. **Configure Strategy**: Menu → Strategy Management → Strategy Configuration
+5. **Start Strategy**: Menu → Strategy Management → Start Strategy
+6. **Execute Trade**: Menu → Strategy Management → Execute Strategic Trade
+7. **Monitor**: Watch real-time P&L and automatic trades!
 
-### 2. Use Learning Mode
-- Always start with learning mode enabled
-- Let the AI learn for at least 24 hours
-- Monitor performance before live trading
+## 🎉 You're Ready!
 
-### 3. Set Stop Losses
-```env
-STOP_LOSS_PERCENTAGE=10
-MAX_DAILY_LOSS=0.5
-```
+Your WorldChain trading bot is now running on your Linux server with:
 
-### 4. Monitor Regularly
-- Check bot status daily
-- Review trading performance
-- Monitor system resources
+- ✅ **Automated position tracking**
+- ✅ **Real-time price monitoring**
+- ✅ **Profit target automation**
+- ✅ **DIP buying detection**
+- ✅ **Risk management**
+- ✅ **Background service operation**
 
-### 5. Keep Backups
-```bash
-# Backup configuration
-cp .env .env.backup
+## 📞 Need Help?
 
-# Backup wallet data
-cp wallets.json wallets.json.backup
-```
-
-## 📞 Getting Help
-
-### Documentation
-- **Full Guide**: `README.md`
-- **Configuration**: `CONFIGURATION_GUIDE.md`
-- **Troubleshooting**: `TROUBLESHOOTING.md`
-
-### Community Support
-- **Telegram Group**: [ALGORITMIT Community](https://t.me/algoritmit_community)
-- **Discord Server**: [ALGORITMIT Discord](https://discord.gg/algoritmit)
-- **GitHub Issues**: [Report Issues](https://github.com/romerodevv/psgho/issues)
-
-### Contact Support
-- **Email**: support@algoritmit.com
-- **Telegram**: @algoritmit_support
-
-## 🎉 Congratulations!
-
-You've successfully set up ALGORITMIT! Here's what to do next:
-
-1. **Monitor Learning Mode** for 24-48 hours
-2. **Review Performance** and adjust settings
-3. **Start with Small Positions** when ready
-4. **Join the Community** for support and tips
-5. **Keep Learning** and improving your strategy
+1. Check the logs: `sudo journalctl -u worldchain-bot -f`
+2. Review configuration: `cat /opt/worldchain-bot/.env`
+3. Verify files: `ls -la /opt/worldchain-bot/`
+4. Test manually: `cd /opt/worldchain-bot && node worldchain-trading-bot.js`
 
 ---
 
-**Happy Trading! 🚀**
+**Happy Trading on WorldChain! 🌍💰🎯**
 
-*Remember: Start small, learn continuously, and never invest more than you can afford to lose.*
+*Remember: Start with small amounts and monitor your bot carefully!*

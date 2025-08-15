@@ -1,127 +1,85 @@
-# 🤖 ALGORITMIT Ubuntu Server Package v4.0 - Novice Trader Edition
+# 🤖 ALGORITMIT - Worldchain Machine Learning Trading Bot
 
-**Complete Ubuntu Server Installation Package for Novice Traders with Root Access**
+**The most advanced AI-powered trading bot for Worldchain with machine learning capabilities.**
 
-## 🎯 What This Package Contains
+## 🚀 Quick Installation
 
-This package is specifically designed for **novice traders** who want to run the ALGORITMIT trading bot on an **Ubuntu server with root access**. It includes everything you need for a complete installation with step-by-step instructions.
-
-### 📦 Package Contents
-- ✅ **Complete ALGORITMIT v4.0 Trading Bot** (Latest version)
-- ✅ **Ubuntu Server Optimized Installation Scripts**
-- ✅ **Root Access Installation Methods**
-- ✅ **Novice-Friendly Setup Wizards**
-- ✅ **Comprehensive Documentation**
-- ✅ **Safety Features & Learning Mode**
-- ✅ **Telegram Notifications Setup**
-- ✅ **Automated Dependency Installation**
-
-## 🚀 Quick Start (One-Line Installation)
-
-### For Root Users (Recommended)
+### One-Line Install (Recommended)
 ```bash
-curl -fsSL https://raw.githubusercontent.com/romerodevv/psgho/main/install-algoritmit-ubuntu-root.sh | sudo bash
+curl -fsSL https://raw.githubusercontent.com/romerodevv/psgho/main/install-algoritmit.sh | bash
 ```
 
-### For Non-Root Users (with sudo)
+### Manual Installation
 ```bash
-curl -fsSL https://raw.githubusercontent.com/romerodevv/psgho/main/install-algoritmit-ubuntu-novice.sh | bash
-```
-
-## 📋 Prerequisites
-
-### System Requirements
-- **Operating System**: Ubuntu 20.04 LTS or Ubuntu 22.04 LTS
-- **RAM**: Minimum 2GB (4GB recommended)
-- **Storage**: Minimum 10GB free space
-- **Network**: Stable internet connection
-- **Access**: Root access or sudo privileges
-
-### Required Accounts
-- **Worldcoin Wallet**: For trading (with some WLD tokens)
-- **Alchemy Account**: For RPC access (free tier available)
-- **Telegram Bot**: For notifications (optional)
-
-## 🔧 Installation Methods
-
-### Method 1: Automated Root Installation (Easiest)
-```bash
-# Download and run the root installer
-wget https://raw.githubusercontent.com/romerodevv/psgho/main/install-algoritmit-ubuntu-root.sh
-chmod +x install-algoritmit-ubuntu-root.sh
-sudo ./install-algoritmit-ubuntu-root.sh
-```
-
-### Method 2: Interactive Novice Installer
-```bash
-# Download and run the novice installer
-wget https://raw.githubusercontent.com/romerodevv/psgho/main/install-algoritmit-ubuntu-novice.sh
-chmod +x install-algoritmit-ubuntu-novice.sh
-./install-algoritmit-ubuntu-novice.sh
-```
-
-### Method 3: Manual Installation
-```bash
-# Clone the repository
 git clone https://github.com/romerodevv/psgho.git
 cd psgho
-
-# Run the manual installer
-sudo ./manual-install-ubuntu.sh
+npm install
+./install-holdstation-sdk.sh
+cp .env.example .env
+# Edit .env with your settings
+node worldchain-trading-bot.js
 ```
 
-## 📖 Detailed Installation Guide
+## ✨ New Features - ALGORITMIT v3.0
 
-### Step 1: System Preparation
-```bash
-# Update system packages
-sudo apt update && sudo apt upgrade -y
+### 🤖 Machine Learning Trading Strategy
+- **Linear Regression Models**: Predicts price movements based on historical trends
+- **Pattern Recognition**: Identifies bullish, bearish, and neutral market patterns
+- **Automated Learning**: Continuously improves from market data
+- **Risk-Adjusted Trading**: Position sizing based on confidence and volatility
+- **Real-time Adaptation**: Models retrain automatically every 24 hours
 
-# Install essential dependencies
-sudo apt install -y curl wget git build-essential python3 python3-pip nodejs npm
+### 🧠 AI-Powered Decision Making
+- **Multi-Signal Analysis**: Combines multiple ML algorithms for trading decisions
+- **Confidence Scoring**: Only trades when AI is highly confident (configurable 50-95%)
+- **Feature Engineering**: Extracts technical indicators automatically
+- **Pattern Memory**: Learns from successful and failed trades
 
-# Install Node.js 18+ (if not already installed)
-curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
-sudo apt-get install -y nodejs
-```
+### 📊 Advanced Analytics
+- **ML Accuracy Tracking**: Monitor prediction performance in real-time
+- **Training Data Visualization**: See how much data the AI has learned from
+- **Performance Metrics**: Win rate, profit/loss, and model effectiveness
+- **Learning Progress**: Track AI improvement over time
 
-### Step 2: Download and Extract Package
-```bash
-# Create installation directory
-sudo mkdir -p /opt/algoritmit
-cd /opt/algoritmit
+## 🎯 Core Features
 
-# Download the package
-wget https://github.com/romerodevv/psgho/releases/download/v4.0/algoritmit-ubuntu-server-v4.0-novice.tar.gz
+### 💹 Trading Capabilities
+- **HoldStation SDK Integration**: Native Worldchain DEX support
+- **Uniswap V3 Fallback**: Backup trading infrastructure
+- **Multi-Wallet Support**: Manage multiple trading wallets
+- **Token Discovery**: Automatic detection of wallet holdings
+- **Slippage Protection**: Configurable slippage limits
 
-# Extract the package
-sudo tar -xzf algoritmit-ubuntu-server-v4.0-novice.tar.gz
-cd algoritmit-ubuntu-server-v4.0-novice
-```
+### 🏗️ Strategy Builder
+- **Custom DIP/Profit Strategies**: Create personalized trading rules
+- **Price History Analysis**: Compare prices across different timeframes
+- **SMA Integration**: Simple Moving Average-based trading signals
+- **Profit Range Selling**: Sell portions at different profit levels
+- **Console Commands**: Quick trade execution via command line
 
-### Step 3: Install Dependencies
-```bash
-# Install Node.js dependencies
-sudo npm install
+### 🎯 Price Triggers & Automation
+- **Background Price Monitoring**: Continuous price tracking for all tokens
+- **Trigger-Based Trading**: Execute trades based on price conditions
+- **Historical Comparisons**: Trade based on 5min, 1hr, 6hr, 24hr, 7-day data
+- **Smart Notifications**: Alerts for significant price movements
 
-# Install HoldStation SDK
-sudo ./install-holdstation-sdk.sh
+## 🛡️ Safety & Risk Management
 
-# Install system dependencies
-sudo ./install-system-dependencies.sh
-```
+### 🔒 Built-in Safety Features
+- **Learning Mode**: AI learns without trading for 24+ hours first
+- **Position Limits**: Configurable maximum position sizes
+- **Confidence Thresholds**: Only trade with high-confidence predictions
+- **Stop Loss Protection**: Automatic loss prevention
+- **Manual Override**: Disable auto-trading anytime
 
-### Step 4: Configure Environment
-```bash
-# Copy environment template
-sudo cp .env.example .env
+### 📋 Recommended Safety Protocol
+1. **Phase 1 (Days 1-2)**: Enable Learning Mode only
+2. **Phase 2 (Days 3-7)**: Start auto-trading with 0.01 WLD positions  
+3. **Phase 3 (Days 8+)**: Scale up gradually based on performance
 
-# Edit configuration (use nano or vim)
-sudo nano .env
-```
+## ⚙️ Configuration
 
-### Step 5: Setup Configuration
-Edit the `.env` file with your settings:
+### Environment Variables (.env)
 ```env
 # Wallet Configuration
 PRIVATE_KEY_1=your_private_key_here
@@ -131,252 +89,208 @@ WALLET_NAME_1=Main Trading Wallet
 WORLDCHAIN_RPC_URL=https://worldchain-mainnet.g.alchemy.com/public
 ALCHEMY_API_KEY=your_alchemy_api_key
 
-# ALGORITMIT Settings
-ML_CONFIDENCE_THRESHOLD=75
-ML_MAX_POSITION_SIZE=0.1
-ML_LEARNING_MODE=true
-ML_AUTO_TRADING=false
-
-# Telegram Notifications (Optional)
-TELEGRAM_BOT_TOKEN=your_bot_token
-TELEGRAM_CHAT_ID=your_chat_id
+# ALGORITMIT ML Settings
+ML_CONFIDENCE_THRESHOLD=75        # 50-95% (higher = fewer but better trades)
+ML_MAX_POSITION_SIZE=0.1          # Maximum WLD per trade
+ML_LEARNING_MODE=true             # Start with learning only
+ML_AUTO_TRADING=false             # Enable after learning period
 ```
 
-### Step 6: Start the Bot
+### ALGORITMIT Parameters
+- **Confidence Threshold**: 70%+ for high confidence trades
+- **Max Position Size**: Start with 0.01-0.1 WLD
+- **Risk Tolerance**: 1-20% position adjustment
+- **Learning Period**: 50-500 data points for training
+
+## 📊 Usage Guide
+
+### Getting Started with ALGORITMIT
+
+1. **Launch the Bot**
+   ```bash
+   ./start-algoritmit.sh
+   ```
+
+2. **Access ALGORITMIT Menu**
+   - Main Menu → Option 7 (🤖 ALGORITMIT)
+
+3. **Enable Learning Mode**
+   - Select "1. Enable/Disable ALGORITMIT" → Enable
+   - Select "2. Configure Learning Mode" → Enable
+   - Let it run for 24-48 hours
+
+4. **Monitor ML Statistics**
+   - Select "4. View ML Statistics"
+   - Wait for 60%+ accuracy before auto-trading
+
+5. **Enable Auto-Trading (Carefully!)**
+   - Select "3. Configure Auto-Trading Mode"
+   - Type "CONFIRM" to enable
+   - Start with minimal position sizes
+
+### Key Menu Options
+
+#### Main Features
+- **🏠 Wallet Management**: Create, import, and manage wallets
+- **🔍 Token Discovery**: Find tokens in your wallets automatically
+- **📈 Trading Operations**: Execute manual trades with enhanced routing
+- **🎯 Strategy Management**: Traditional DIP/profit strategies
+- **🏗️ Strategy Builder**: Custom trading strategies
+- **🎯 Price Triggers**: Automated buy/sell based on price conditions
+- **🤖 ALGORITMIT**: Machine learning trading system ⭐ NEW!
+
+#### ALGORITMIT Submenu
+- **Enable/Disable**: Turn the AI trading system on/off
+- **Learning Mode**: Configure data collection and training
+- **Auto-Trading**: Enable/disable automated trade execution
+- **ML Statistics**: View AI performance and accuracy
+- **Parameters**: Configure confidence, position sizes, risk tolerance
+- **Active Positions**: Monitor AI-managed trades
+- **Model Retraining**: Force model updates with new data
+- **Tutorial**: Complete guide to ML trading
+
+## 🔧 Advanced Features
+
+### Console Commands
+Quick trade execution via command line interface:
 ```bash
-# Start the trading bot
-sudo node worldchain-trading-bot.js
-
-# Or use the start script
-sudo ./start.sh
+buy YIELD 0.10 d15 p15    # Buy YIELD with 0.10 WLD, 15% DIP, 15% profit
+buy YIELD 0.10            # Immediate buy with 0.10 WLD
+sell YIELD all            # Sell all YIELD tokens
+buy YIELD 1h              # Buy at best rate from last hour
 ```
 
-## 🛡️ Safety Features for Novice Traders
-
-### Learning Mode (Recommended for Beginners)
-- **24+ Hour Learning Period**: Bot learns market patterns without trading
-- **Paper Trading**: Test strategies without real money
-- **Confidence Thresholds**: Only trade when AI is highly confident
-- **Position Limits**: Maximum trade size protection
-
-### Risk Management
-- **Stop Loss Protection**: Automatic loss prevention
-- **Position Sizing**: Configurable maximum position sizes
-- **Manual Override**: Disable auto-trading anytime
-- **Emergency Stop**: Immediate trading halt
-
-## 📱 Telegram Notifications Setup
-
-### Step 1: Create Telegram Bot
-1. Message `@BotFather` on Telegram
-2. Send `/newbot` command
-3. Follow instructions to create your bot
-4. Copy the bot token
-
-### Step 2: Get Chat ID
-1. Message your bot
-2. Visit: `https://api.telegram.org/bot<YOUR_BOT_TOKEN>/getUpdates`
-3. Find your `chat_id` in the response
-
-### Step 3: Configure Notifications
+### Service Management
+Run as a background service:
 ```bash
-# Edit the .env file
-sudo nano .env
+# Using PM2
+npm install -g pm2
+pm2 start worldchain-trading-bot.js --name "algoritmit-bot"
 
-# Add your Telegram settings
-TELEGRAM_BOT_TOKEN=your_bot_token_here
-TELEGRAM_CHAT_ID=your_chat_id_here
+# Using systemd (advanced)
+./create-service.sh
+sudo systemctl enable algoritmit-bot
+sudo systemctl start algoritmit-bot
 ```
 
-## 🔄 Running as a Service
+## 📚 Documentation
 
-### Create Systemd Service
-```bash
-# Create service file
-sudo nano /etc/systemd/system/algoritmit.service
-```
+### Complete Guides
+- **[ALGORITMIT_GUIDE.md](ALGORITMIT_GUIDE.md)**: Comprehensive ML trading guide
+- **[INSTALL_ALGORITMIT.md](INSTALL_ALGORITMIT.md)**: Detailed installation instructions
+- **In-App Tutorial**: ALGORITMIT menu → option 8
 
-Add the following content:
-```ini
-[Unit]
-Description=ALGORITMIT Trading Bot
-After=network.target
+### API References
+- **HoldStation SDK**: Primary DEX integration for Worldchain
+- **Ethers.js v6**: Blockchain interaction library
+- **Alchemy API**: Portfolio and balance management
 
-[Service]
-Type=simple
-User=root
-WorkingDirectory=/opt/algoritmit/algoritmit-ubuntu-server-v4.0-novice
-ExecStart=/usr/bin/node worldchain-trading-bot.js
-Restart=always
-RestartSec=10
-Environment=NODE_ENV=production
+## ⚠️ Important Disclaimers
 
-[Install]
-WantedBy=multi-user.target
-```
+### Financial Risks
+- **Real Money Trading**: This bot uses real cryptocurrency
+- **No Profit Guarantees**: Past performance doesn't predict future results
+- **Market Volatility**: Crypto markets are highly volatile
+- **Start Small**: Always begin with amounts you can afford to lose
 
-### Enable and Start Service
-```bash
-# Reload systemd
-sudo systemctl daemon-reload
+### Technical Considerations
+- **Beta Software**: May contain bugs or unexpected behavior
+- **Machine Learning Limitations**: AI predictions can be wrong
+- **Internet Dependency**: Requires stable internet connection
+- **Continuous Monitoring**: Regular supervision recommended
 
-# Enable service
-sudo systemctl enable algoritmit
-
-# Start service
-sudo systemctl start algoritmit
-
-# Check status
-sudo systemctl status algoritmit
-```
-
-## 📊 Monitoring and Logs
-
-### View Logs
-```bash
-# View service logs
-sudo journalctl -u algoritmit -f
-
-# View application logs
-sudo tail -f /opt/algoritmit/algoritmit-ubuntu-server-v4.0-novice/logs/bot.log
-```
-
-### Check Status
-```bash
-# Check service status
-sudo systemctl status algoritmit
-
-# Check if bot is running
-sudo ps aux | grep worldchain-trading-bot
-```
-
-## 🔧 Troubleshooting
+## 🆘 Troubleshooting
 
 ### Common Issues
 
-#### 1. Node.js Version Issues
-```bash
-# Check Node.js version
-node --version
+**Low ML Accuracy**
+- Solution: Let it learn longer (48+ hours)
+- Check: Price database is running and collecting data
 
-# If version is < 16, install Node.js 18
-curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
-sudo apt-get install -y nodejs
+**No Auto-Trades Executing**
+- Check: Confidence threshold not too high (try 70%)
+- Verify: Auto-trading mode is enabled
+- Confirm: Sufficient WLD balance in wallet
+
+**"Cannot find module" Errors**
+```bash
+npm install
+./install-holdstation-sdk.sh
 ```
 
-#### 2. Permission Issues
+**HoldStation SDK Issues**
 ```bash
-# Fix permissions
-sudo chown -R root:root /opt/algoritmit
-sudo chmod -R 755 /opt/algoritmit
+npm install @holdstation/worldchain-sdk@latest
+npm install @holdstation/worldchain-ethers-v6@latest
 ```
 
-#### 3. Network Issues
-```bash
-# Check internet connection
-ping -c 3 google.com
+### Performance Optimization
+- **VPS Hosting**: Better connectivity and uptime
+- **4GB+ RAM**: Recommended for ML processing
+- **SSD Storage**: Faster data access for AI models
 
-# Check if ports are open
-sudo netstat -tlnp | grep :3000
+## 🤝 Contributing
+
+### Development Setup
+```bash
+git clone https://github.com/romerodevv/psgho.git
+cd psgho
+npm install
+npm run dev
 ```
 
-#### 4. Dependency Issues
-```bash
-# Reinstall dependencies
-sudo rm -rf node_modules package-lock.json
-sudo npm install
-```
+### Areas for Contribution
+- **ML Model Improvements**: Better prediction algorithms
+- **UI/UX Enhancements**: Improved user interface
+- **Strategy Templates**: Pre-built trading strategies
+- **Documentation**: Guides and tutorials
+- **Testing**: Bug reports and fixes
+
+## 📈 Roadmap
+
+### Planned Features
+- **Deep Learning Models**: Neural networks for complex patterns
+- **Sentiment Analysis**: Social media and news integration
+- **Multi-Timeframe Analysis**: Different prediction horizons
+- **Portfolio Optimization**: Advanced risk management
+- **Strategy Sharing**: Community strategy marketplace
+
+### Community Features
+- **Performance Leaderboards**: Compare AI performance
+- **Strategy Templates**: Share successful configurations
+- **Collaborative Learning**: Crowd-sourced pattern recognition
+
+## 📞 Support
 
 ### Getting Help
-- **Documentation**: Check the `/docs` folder
-- **Logs**: Review logs in `/logs` directory
-- **Community**: Join our Telegram group
-- **Issues**: Report on GitHub
+1. **Documentation**: Check guides and tutorials first
+2. **GitHub Issues**: Report bugs or request features
+3. **Discussions**: Community support and tips
+4. **In-App Help**: Built-in tutorials and guides
 
-## 📈 Performance Optimization
-
-### System Optimization
-```bash
-# Increase file descriptors
-echo "* soft nofile 65536" | sudo tee -a /etc/security/limits.conf
-echo "* hard nofile 65536" | sudo tee -a /etc/security/limits.conf
-
-# Optimize network settings
-echo "net.core.rmem_max = 16777216" | sudo tee -a /etc/sysctl.conf
-echo "net.core.wmem_max = 16777216" | sudo tee -a /etc/sysctl.conf
-sudo sysctl -p
-```
-
-### Bot Optimization
-- **Price Check Interval**: Set to 3-5 seconds for optimal performance
-- **Logging Level**: Reduce verbosity for better performance
-- **Memory Usage**: Monitor with `htop` or `top`
-
-## 🔄 Updates and Maintenance
-
-### Update the Bot
-```bash
-# Stop the service
-sudo systemctl stop algoritmit
-
-# Backup current configuration
-sudo cp /opt/algoritmit/algoritmit-ubuntu-server-v4.0-novice/.env /opt/algoritmit/.env.backup
-
-# Download latest version
-cd /opt/algoritmit
-sudo wget https://github.com/romerodevv/psgho/releases/download/v4.0/algoritmit-ubuntu-server-v4.0-novice.tar.gz
-
-# Extract and install
-sudo tar -xzf algoritmit-ubuntu-server-v4.0-novice.tar.gz
-sudo cp .env.backup algoritmit-ubuntu-server-v4.0-novice/.env
-
-# Restart service
-sudo systemctl start algoritmit
-```
-
-### Regular Maintenance
-```bash
-# Update system packages
-sudo apt update && sudo apt upgrade -y
-
-# Clean npm cache
-sudo npm cache clean --force
-
-# Check disk space
-df -h
-
-# Monitor system resources
-htop
-```
-
-## 📞 Support and Resources
-
-### Documentation
-- **Quick Start Guide**: `QUICK_START.md`
-- **Installation Guide**: `INSTALLATION_GUIDE.md`
-- **Configuration Guide**: `CONFIGURATION_GUIDE.md`
-- **Troubleshooting**: `TROUBLESHOOTING.md`
-
-### Community
-- **Telegram Group**: [ALGORITMIT Community](https://t.me/algoritmit_community)
-- **Discord Server**: [ALGORITMIT Discord](https://discord.gg/algoritmit)
-- **GitHub Issues**: [Report Issues](https://github.com/romerodevv/psgho/issues)
-
-### Contact
-- **Email**: support@algoritmit.com
-- **Telegram**: @algoritmit_support
-- **Website**: https://algoritmit.com
-
-## 📄 License
-
-This software is licensed under the MIT License. See the `LICENSE` file for details.
-
-## ⚠️ Disclaimer
-
-Trading cryptocurrencies involves significant risk. This software is for educational and entertainment purposes only. Never invest more than you can afford to lose. The developers are not responsible for any financial losses.
+### Safety Reminders
+- **Start with Learning Mode** for 24+ hours minimum
+- **Use tiny amounts** (0.01 WLD) when first testing auto-trading
+- **Monitor closely** during the first week of operation
+- **Never invest** more than you can afford to lose completely
 
 ---
 
-**Happy Trading! 🚀**
+## 🚀 Quick Start Checklist
 
-*ALGORITMIT Ubuntu Server Package v4.0 - Novice Trader Edition*
+- [ ] Install ALGORITMIT bot using one-line installer
+- [ ] Configure `.env` file with your wallet and RPC settings
+- [ ] Launch bot and go to ALGORITMIT menu (option 7)
+- [ ] Enable ALGORITMIT strategy
+- [ ] Turn on Learning Mode and let it run 24+ hours
+- [ ] Monitor ML accuracy until it reaches 60%+
+- [ ] Enable auto-trading with 0.01 WLD max position
+- [ ] Set confidence threshold to 75%
+- [ ] Monitor performance daily for first week
+- [ ] Scale up gradually based on results
+
+**Ready to start your AI trading journey? Install now and let machine learning optimize your Worldchain trading!**
+
+---
+
+*⚠️ Trading cryptocurrency involves substantial risk of loss. This software is provided "as is" without warranties. Always trade responsibly and never risk more than you can afford to lose.*
