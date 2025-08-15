@@ -511,6 +511,191 @@ class AdvancedTradingEngine {
         };
     }
 
+    // OPUS 4.1 Ultra-Fast DIP Buying Methods
+    async executeUltraFastDIPBuy(wallet, tokenAddress, amountInWLD, maxSlippage = 15) {
+        const startTime = Date.now();
+        
+        try {
+            // OPUS 4.1: Pre-validate everything before execution
+            const signer = new ethers.Wallet(wallet.privateKey, this.provider);
+            const tokenContract = new ethers.Contract(tokenAddress, this.ERC20_ABI, signer);
+            const wldContract = new ethers.Contract(this.WLD_ADDRESS, this.ERC20_ABI, signer);
+            
+            // OPUS 4.1: Parallel validation
+            const [wldBalance, tokenDecimals, wldDecimals, currentAllowance] = await Promise.all([
+                wldContract.balanceOf(wallet.address),
+                tokenContract.decimals(),
+                wldContract.decimals(),
+                wldContract.allowance(wallet.address, this.UNISWAP_V3_ROUTER)
+            ]);
+            
+            const amountInWei = ethers.parseUnits(amountInWLD.toString(), wldDecimals);
+            
+            // OPUS 4.1: Ultra-fast balance and allowance check
+            if (wldBalance < amountInWei) {
+                throw new Error(`Insufficient WLD balance: ${ethers.formatUnits(wldBalance, wldDecimals)} < ${amountInWLD}`);
+            }
+            
+            // OPUS 4.1: Pre-approve if needed (parallel execution)
+            let approvalPromise = Promise.resolve();
+            if (currentAllowance < amountInWei) {
+                approvalPromise = wldContract.approve(this.UNISWAP_V3_ROUTER, ethers.MaxUint256);
+            }
+            
+            // OPUS 4.1: Get quote with ultra-high slippage for speed
+            const quote = await this.quoterContract.quoteExactInputSingle(
+                this.WLD_ADDRESS,
+                tokenAddress,
+                3000, // Use 0.3% fee tier for speed
+                amountInWei,
+                0
+            );
+            
+            // OPUS 4.1: Calculate minimum output with high slippage tolerance
+            const slippageMultiplier = BigInt(Math.floor((100 - maxSlippage) * 100));
+            const amountOutMinimum = (quote * slippageMultiplier) / BigInt(10000);
+            
+            // OPUS 4.1: Wait for approval if needed
+            if (currentAllowance < amountInWei) {
+                await approvalPromise;
+            }
+            
+            // OPUS 4.1: Ultra-fast swap parameters
+            const swapParams = {
+                tokenIn: this.WLD_ADDRESS,
+                tokenOut: tokenAddress,
+                fee: 3000,
+                recipient: wallet.address,
+                deadline: Math.floor(Date.now() / 1000) + 300, // 5 minutes for speed
+                amountIn: amountInWei,
+                amountOutMinimum: amountOutMinimum,
+                sqrtPriceLimitX96: 0
+            };
+            
+            // OPUS 4.1: Execute with ultra-high gas for priority
+            const routerContractWithSigner = this.routerContract.connect(signer);
+            const gasPrice = ethers.parseUnits('100', 'gwei'); // Ultra-high gas
+            
+            const swapTx = await routerContractWithSigner.exactInputSingle(swapParams, {
+                gasLimit: 800000,
+                gasPrice: gasPrice,
+                maxFeePerGas: gasPrice,
+                maxPriorityFeePerGas: ethers.parseUnits('50', 'gwei')
+            });
+            
+            const executionTime = Date.now() - startTime;
+            
+            // OPUS 4.1: Return immediately without waiting for confirmation
+            return {
+                success: true,
+                txHash: swapTx.hash,
+                executionTime,
+                gasPrice: ethers.formatUnits(gasPrice, 'gwei'),
+                expectedOutput: ethers.formatUnits(quote, tokenDecimals),
+                amountIn: amountInWLD,
+                timestamp: Date.now()
+            };
+            
+        } catch (error) {
+            const executionTime = Date.now() - startTime;
+            return {
+                success: false,
+                error: error.message,
+                executionTime
+            };
+        }
+    }
+
+    // OPUS 4.1: Batch ultra-fast DIP buying
+    async executeBatchUltraFastDIPBuys(trades) {
+        const startTime = Date.now();
+        const results = [];
+        
+        // OPUS 4.1: Execute all trades simultaneously for maximum speed
+        const tradePromises = trades.map(async (trade) => {
+            try {
+                return await this.executeUltraFastDIPBuy(
+                    trade.wallet,
+                    trade.tokenAddress,
+                    trade.amountInWLD,
+                    trade.maxSlippage || 15
+                );
+            } catch (error) {
+                return {
+                    success: false,
+                    error: error.message,
+                    trade: trade
+                };
+            }
+        });
+        
+        // OPUS 4.1: Wait for all trades to complete
+        const batchResults = await Promise.all(tradePromises);
+        results.push(...batchResults);
+        
+        const totalTime = Date.now() - startTime;
+        
+        return {
+            results,
+            totalTime,
+            avgTime: totalTime / trades.length,
+            successCount: results.filter(r => r.success).length
+        };
+    }
+
+    // OPUS 4.1: Ultra-fast price monitoring for DIP detection
+    async monitorPricesForDIP(tokenAddresses, callback, interval = 1000) {
+        const priceCache = new Map();
+        
+        const monitor = async () => {
+            try {
+                // OPUS 4.1: Get all prices in parallel
+                const pricePromises = tokenAddresses.map(async (address) => {
+                    try {
+                        const price = await this.getTokenPrice(address, false); // No cache for real-time
+                        return { address, price: price.price };
+                    } catch (error) {
+                        return { address, error: error.message };
+                    }
+                });
+                
+                const prices = await Promise.all(pricePromises);
+                
+                // OPUS 4.1: Process prices immediately
+                for (const priceData of prices) {
+                    if (priceData.price) {
+                        const lastPrice = priceCache.get(priceData.address);
+                        priceCache.set(priceData.address, priceData.price);
+                        
+                        if (lastPrice) {
+                            const priceChange = ((priceData.price - lastPrice) / lastPrice) * 100;
+                            
+                            // OPUS 4.1: Immediate callback for any significant change
+                            if (Math.abs(priceChange) > 2) { // 2% threshold
+                                callback({
+                                    tokenAddress: priceData.address,
+                                    currentPrice: priceData.price,
+                                    previousPrice: lastPrice,
+                                    priceChange,
+                                    timestamp: Date.now()
+                                });
+                            }
+                        }
+                    }
+                }
+                
+            } catch (error) {
+                console.error('OPUS 4.1 Price monitoring error:', error.message);
+            }
+        };
+        
+        // OPUS 4.1: Execute immediately and set interval
+        await monitor();
+        const intervalId = setInterval(monitor, interval);
+        
+        return () => clearInterval(intervalId);
+    }
+
     // Clear price cache
     clearCache() {
         this.priceCache.clear();
