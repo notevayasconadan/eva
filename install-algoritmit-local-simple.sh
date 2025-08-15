@@ -36,12 +36,7 @@ SERVICE_NAME="algoritmit-local"
 # Check if running as root
 check_root() {
     if [[ $EUID -eq 0 ]]; then
-        print_warning "Running as root. This is not recommended for local installation."
-        read -p "Continue anyway? (y/N): " -n 1 -r
-        echo
-        if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-            exit 1
-        fi
+        print_info "Running as root. Proceeding with installation..."
     fi
 }
 
