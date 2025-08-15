@@ -2076,7 +2076,7 @@ class WorldchainTradingBot {
             console.log(chalk.green(`   💎 Discovery Price: ${discoveryInfo.discoveryPrice.toFixed(8)} WLD`));
             console.log(chalk.white(`   🕒 Discovery Time: ${new Date(discoveryInfo.discoveryTimestamp).toLocaleString()}`));
             console.log(chalk.white(`   📊 Source: ${discoveryInfo.discoveryPriceInfo?.source || 'Unknown'}`));
-            console.log(chalk.white(`   🎯 Confidence: ${discoveryInfo.discoveryPriceInfo?.confidence || 'Unknown'}`);
+            console.log(chalk.white(`   🎯 Confidence: ${discoveryInfo.discoveryPriceInfo?.confidence || 'Unknown'}`));
             console.log('');
             
             if (performance) {
