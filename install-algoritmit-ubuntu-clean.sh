@@ -324,18 +324,24 @@ install_node_dependencies() {
             # Clear cache and try alternative methods
             npm cache clean --force
             
-            # Method 2: Try with different registry
+            # Try different installation methods based on retry count
             if [ $RETRY_COUNT -eq 2 ]; then
                 print_info "Trying with alternative npm registry..."
                 npm config set registry https://registry.npmjs.org/
                 npm install --production --no-audit --no-fund --prefer-offline || true
-            elif [ $RETRY_COUNT -eq 3 ] && command -v yarn &> /dev/null; then
+            fi
+            
+            if [ $RETRY_COUNT -eq 3 ] && command -v yarn &> /dev/null; then
                 print_info "Trying with yarn..."
                 yarn install --production --ignore-engines || true
-            elif [ $RETRY_COUNT -eq 4 ] && command -v pnpm &> /dev/null; then
+            fi
+            
+            if [ $RETRY_COUNT -eq 4 ] && command -v pnpm &> /dev/null; then
                 print_info "Trying with pnpm..."
                 pnpm install --prod --ignore-engines || true
-            elif [ $RETRY_COUNT -eq 5 ]; then
+            fi
+            
+            if [ $RETRY_COUNT -eq 5 ]; then
                 print_info "Attempting manual package installation..."
                 install_packages_manually
             fi
