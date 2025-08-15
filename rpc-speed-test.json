@@ -1,0 +1,45 @@
+{
+  "timestamp": 1755265622124,
+  "results": [
+    {
+      "endpointName": "QuickNode (cea629fe80a05630338845dc1fd58f8da329b083)",
+      "averageResponseTime": 18.22222222222222,
+      "isHealthy": true,
+      "successfulTests": 9,
+      "failedTests": 0,
+      "rank": 1
+    },
+    {
+      "endpointName": "Alchemy Public",
+      "averageResponseTime": 53.111111111111114,
+      "isHealthy": true,
+      "successfulTests": 9,
+      "failedTests": 0,
+      "rank": 2
+    },
+    {
+      "endpointName": "DRPC Public",
+      "averageResponseTime": 92.55555555555556,
+      "isHealthy": true,
+      "successfulTests": 9,
+      "failedTests": 0,
+      "rank": 3
+    },
+    {
+      "endpointName": "PublicNode",
+      "averageResponseTime": 0,
+      "isHealthy": false,
+      "successfulTests": 0,
+      "failedTests": 9,
+      "rank": 4
+    },
+    {
+      "endpointName": "Worldchain Official",
+      "averageResponseTime": 0,
+      "isHealthy": false,
+      "successfulTests": 0,
+      "failedTests": 9,
+      "rank": 5
+    }
+  ]
+}
