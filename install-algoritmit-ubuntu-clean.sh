@@ -329,21 +329,12 @@ install_node_dependencies() {
                 print_info "Trying with alternative npm registry..."
                 npm config set registry https://registry.npmjs.org/
                 npm install --production --no-audit --no-fund --prefer-offline || true
-            fi
-            
-            # Method 3: Try with yarn if available
             elif [ $RETRY_COUNT -eq 3 ] && command -v yarn &> /dev/null; then
                 print_info "Trying with yarn..."
                 yarn install --production --ignore-engines || true
-            fi
-            
-            # Method 4: Try with pnpm if available
             elif [ $RETRY_COUNT -eq 4 ] && command -v pnpm &> /dev/null; then
                 print_info "Trying with pnpm..."
                 pnpm install --prod --ignore-engines || true
-            fi
-            
-            # Method 5: Manual package installation
             elif [ $RETRY_COUNT -eq 5 ]; then
                 print_info "Attempting manual package installation..."
                 install_packages_manually
