@@ -292,7 +292,6 @@ install_node_dependencies() {
     npm config set fetch-retries 5
     npm config set fetch-retry-mintimeout 20000
     npm config set fetch-retry-maxtimeout 120000
-    npm config set timeout 60000
     
     # Try to detect and configure proxy if needed
     if [ -n "$http_proxy" ] || [ -n "$HTTP_PROXY" ]; then
@@ -408,7 +407,6 @@ EOF
     npm config set fetch-retries 10
     npm config set fetch-retry-mintimeout 30000
     npm config set fetch-retry-maxtimeout 300000
-    npm config set timeout 300000
     
     # Try installation with different methods
     if npm install --production --no-audit --no-fund --prefer-offline --verbose; then
@@ -447,7 +445,6 @@ install_holdstation_sdk() {
         npm config set fetch-retries 5
         npm config set fetch-retry-mintimeout 20000
         npm config set fetch-retry-maxtimeout 120000
-        npm config set timeout 60000
         
         if npm install @holdstation/worldchain-sdk @holdstation/worldchain-ethers-v6 --no-audit --no-fund --prefer-offline; then
             print_success "HoldStation SDK installed successfully"
