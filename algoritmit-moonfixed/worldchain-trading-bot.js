@@ -10,7 +10,8 @@ const figlet = require('figlet');
 const AdvancedTradingEngine = require('./trading-engine');
 const TokenDiscoveryService = require('./token-discovery');
 const TelegramNotifications = require('./telegram-notifications');
-const { UltraFastDIPStrategy, UltraFastStrategyManager } = require('./algoritmit-strategy');
+const { UltraFastStrategyManager } = require('./algoritmit-strategy');
+const UltraFastDIPStrategy = require('./ultra-fast-dip-strategy');
 require('dotenv').config();
 
 class WorldchainTradingBot {
