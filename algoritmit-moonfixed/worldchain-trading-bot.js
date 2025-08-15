@@ -7,13 +7,9 @@ const readline = require('readline');
 const axios = require('axios');
 const chalk = require('chalk');
 const figlet = require('figlet');
-const AdvancedTradingEngine = require('./trading-engine');
-const SinclaveEnhancedTradingEngine = require('./sinclave-enhanced-engine');
+const UltraFastTradingEngine = require('./ultra-fast-trading-engine');
+const UltraFastDIPStrategy = require('./ultra-fast-dip-strategy');
 const TokenDiscoveryService = require('./token-discovery');
-const TradingStrategy = require('./trading-strategy');
-const StrategyBuilder = require('./strategy-builder');
-const PriceDatabase = require('./price-database');
-const AlgoritmitStrategy = require('./algoritmit-strategy');
 const TelegramNotifications = require('./telegram-notifications');
 require('dotenv').config();
 
@@ -30,53 +26,15 @@ class WorldchainTradingBot {
         this.wallets = this.loadWallets();
         this.discoveredTokens = this.loadDiscoveredTokens();
         
-        // Initialize advanced modules
-        this.tradingEngine = new AdvancedTradingEngine(this.provider, this.config);
-        this.sinclaveEngine = new SinclaveEnhancedTradingEngine(this.provider, this.config);
+        // Initialize ultra-fast modules
+        this.tradingEngine = new UltraFastTradingEngine(this.provider, this.config);
+        this.dipStrategy = new UltraFastDIPStrategy(this.tradingEngine, this.config);
         this.tokenDiscovery = new TokenDiscoveryService(this.provider, this.config);
-        this.strategyBuilder = new StrategyBuilder(this.tradingEngine, this.sinclaveEngine, this.config, this.telegramNotifications);
-        
-        // Pass logging callback to sinclave engine
-        this.sinclaveEngine.setLoggingCallback((message, type) => {
-            this.smartLog(message, type);
-        });
-        
-        // Initialize Price Database
-        this.priceDatabase = new PriceDatabase(this.sinclaveEngine, this.config);
-        
-        // Pass logging callback to price database
-        this.priceDatabase.setLoggingCallback((message, type) => {
-            this.smartLog(message, type);
-        });
-        
-        // Connect price database to wallet system
-        this.priceDatabase.findWalletByAddress = (address) => {
-            return Object.values(this.wallets).find(w => w.address.toLowerCase() === address.toLowerCase());
-        };
-        
-        // Initialize ALGORITMIT Strategy
-        this.algoritmitStrategy = new AlgoritmitStrategy(
-            this.tradingEngine, 
-            this.sinclaveEngine, 
-            this.priceDatabase, 
-            this.config
-        );
-
-        // Initialize Telegram notifications
         this.telegramNotifications = new TelegramNotifications(this.config);
         
-        // Initialize price triggers
-        this.triggers = [];
-        
-        // Auto-track discovered tokens
-        this.setupPriceDatabaseIntegration();
-        
-        // Start background price monitoring
-        this.startPriceMonitoring();
-        
-        // Initialize trading strategy with both engines and Telegram notifications
-        this.tradingStrategy = new TradingStrategy(this.tradingEngine, this.config, this.sinclaveEngine, this.telegramNotifications);
-        this.setupStrategyEventListeners();
+        // Initialize ultra-fast settings
+        this.monitoringTokens = new Set();
+        this.isMonitoring = false;
         
         // WLD token address on Worldchain (correct address)
         this.WLD_ADDRESS = '0x2cfc85d8e48f8eab294be644d9e25c3030863003';
