@@ -1,0 +1,23 @@
+ALGORITMIT Ubuntu Server Package v4.0.0
+==========================================
+
+Package Name: algoritmit-ubuntu-server-v4.0-novice
+Version: 4.0.0
+Release Date: Fri Aug 15 12:49:38 PM UTC 2025
+Target OS: Ubuntu 20.04, 22.04, 24.04
+Architecture: x86_64
+
+Contents:
+- Complete ALGORITMIT v4.0 Trading Bot
+- Ubuntu Server Installation Scripts
+- Novice Trader Documentation
+- Configuration Templates
+- Management Scripts
+
+Installation:
+1. Extract package: tar -xzf algoritmit-ubuntu-server-v4.0-novice.tar.gz
+2. Run installer: sudo ./install-algoritmit-ubuntu-root.sh
+3. Configure: edit .env file
+4. Start bot: algoritmit start
+
+For more information, see README.md
