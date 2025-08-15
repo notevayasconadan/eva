@@ -2,9 +2,10 @@ const { ethers } = require('ethers');
 const axios = require('axios');
 
 class UltraFastTradingEngine {
-    constructor(provider, config) {
+    constructor(provider, config, bot = null) {
         this.provider = provider;
         this.config = config;
+        this.bot = bot; // Reference to the main bot instance
         
         // Worldchain DEX addresses
         this.UNISWAP_V3_ROUTER = '0xE592427A0AEce92De3Edee1F18E0157C05861564';

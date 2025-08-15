@@ -182,6 +182,24 @@ class UltraFastDIPStrategy {
                                 dipData: dipResult,
                                 timestamp: Date.now()
                             });
+                            
+                            // Auto-execute trade if auto-trading is enabled
+                            if (this.tradingEngine.bot && this.tradingEngine.bot.autoTradingConfig.autoTradingMode) {
+                                const signal = {
+                                    type: 'BUY',
+                                    tokenAddress: priceData.address,
+                                    price: priceData.price,
+                                    dipData: dipResult
+                                };
+                                
+                                this.tradingEngine.bot.executeAutoTrade(signal).then(result => {
+                                    if (result.success) {
+                                        console.log(`🚀 Auto-trade executed: ${result.txHash}`);
+                                    } else {
+                                        console.log(`❌ Auto-trade failed: ${result.reason || result.error}`);
+                                    }
+                                });
+                            }
                         }
                     }
                 }

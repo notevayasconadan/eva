@@ -27,7 +27,7 @@ class WorldchainTradingBot {
         this.discoveredTokens = this.loadDiscoveredTokens();
         
         // Initialize ultra-fast modules
-        this.tradingEngine = new UltraFastTradingEngine(this.provider, this.config);
+        this.tradingEngine = new UltraFastTradingEngine(this.provider, this.config, this);
         this.dipStrategy = new UltraFastDIPStrategy(this.tradingEngine, this.config);
         this.tokenDiscovery = new TokenDiscoveryService(this.provider, this.config);
         this.telegramNotifications = new TelegramNotifications(this.config);
@@ -35,6 +35,17 @@ class WorldchainTradingBot {
         // Initialize ultra-fast settings
         this.monitoringTokens = new Set();
         this.isMonitoring = false;
+        
+        // Auto-trading configuration
+        this.autoTradingConfig = {
+            enabled: false,
+            learningMode: true,
+            autoTradingMode: false,
+            defaultWallet: null,
+            defaultAmount: 0.1, // Default amount in WLD
+            maxSlippage: 15,
+            gasPrice: '100'
+        };
         
         // WLD token address on Worldchain (correct address)
         this.WLD_ADDRESS = '0x2cfc85d8e48f8eab294be644d9e25c3030863003';
@@ -711,6 +722,78 @@ class WorldchainTradingBot {
                 return this.loggingConfig.showSuccessLogs;
             default:
                 return true;
+        }
+    }
+
+    // Auto-trading methods
+    setAutoTradingMode(enabled) {
+        this.autoTradingConfig.autoTradingMode = enabled;
+        this.smartLog(`Auto-trading ${enabled ? 'ENABLED' : 'DISABLED'}`, enabled ? 'success' : 'warning');
+    }
+
+    setEnabled(enabled) {
+        this.autoTradingConfig.enabled = enabled;
+        this.smartLog(`Trading ${enabled ? 'ENABLED' : 'DISABLED'}`, enabled ? 'success' : 'warning');
+    }
+
+    setLearningMode(enabled) {
+        this.autoTradingConfig.learningMode = enabled;
+        this.smartLog(`Learning mode ${enabled ? 'ENABLED' : 'DISABLED'}`, enabled ? 'success' : 'warning');
+    }
+
+    getStatistics() {
+        return {
+            autoTradingMode: this.autoTradingConfig.autoTradingMode,
+            enabled: this.autoTradingConfig.enabled,
+            learningMode: this.autoTradingConfig.learningMode,
+            totalTrades: this.dipStrategy ? this.dipStrategy.totalTrades : 0,
+            successRate: this.dipStrategy ? this.dipStrategy.successRate : 0,
+            activePositions: this.dipStrategy ? this.dipStrategy.activePositions.size : 0
+        };
+    }
+
+    // Execute auto-trade when signal detected
+    async executeAutoTrade(signal) {
+        if (!this.autoTradingConfig.autoTradingMode || !this.autoTradingConfig.enabled) {
+            return { success: false, reason: 'Auto-trading not enabled' };
+        }
+
+        // Get default wallet
+        const walletName = this.autoTradingConfig.defaultWallet || Object.keys(this.wallets)[0];
+        if (!walletName) {
+            this.smartLog('No wallet configured for auto-trading', 'error');
+            return { success: false, reason: 'No wallet configured' };
+        }
+
+        const wallet = this.wallets[walletName];
+        if (!wallet) {
+            this.smartLog(`Wallet ${walletName} not found`, 'error');
+            return { success: false, reason: 'Wallet not found' };
+        }
+
+        try {
+            const walletInstance = new ethers.Wallet(wallet.privateKey, this.provider);
+            
+            if (signal.type === 'BUY') {
+                this.smartLog(`🚀 Auto-executing BUY signal for ${signal.tokenAddress}`, 'strategy');
+                const result = await this.dipStrategy.executeDIPBuy(
+                    walletInstance,
+                    signal.tokenAddress,
+                    this.autoTradingConfig.defaultAmount
+                );
+                return result;
+            } else if (signal.type === 'SELL') {
+                this.smartLog(`🚀 Auto-executing SELL signal for ${signal.tokenAddress}`, 'strategy');
+                const result = await this.dipStrategy.executeProfitTake(
+                    walletInstance,
+                    signal.tokenAddress,
+                    20 // 20% profit target
+                );
+                return result;
+            }
+        } catch (error) {
+            this.smartLog(`Auto-trade execution failed: ${error.message}`, 'error');
+            return { success: false, error: error.message };
         }
     }
     
@@ -8381,25 +8464,43 @@ class WorldchainTradingBot {
     
     // Configure Auto-Trading Mode
     async configureAutoTrading() {
-        const currentStatus = this.algoritmitStrategy.strategyConfig.autoTradingMode;
+        const currentStatus = this.autoTradingConfig.autoTradingMode;
         
         console.log('\n⚡ AUTO-TRADING MODE CONFIGURATION');
         console.log('══════════════════════════════════');
-        console.log('Auto-Trading Mode allows ALGORITMIT to automatically execute');
-        console.log('buy/sell orders based on ML predictions with high confidence.');
+        console.log('Auto-Trading Mode allows the bot to automatically execute');
+        console.log('DIP buys and profit takes based on price movements.');
         console.log('');
         console.log('⚠️  WARNING: This will execute real trades with real money!');
         console.log('Start with small amounts and monitor carefully.');
         console.log('');
         console.log(`Current Status: ${currentStatus ? '🟢 ENABLED' : '🔴 DISABLED'}`);
         
-        if (!this.algoritmitStrategy.strategyConfig.enabled) {
-            console.log('❌ ALGORITMIT must be enabled first');
-            await this.sleep(2000);
-            return;
+        // Configure default wallet
+        if (Object.keys(this.wallets).length > 0) {
+            console.log('\n💼 SELECT DEFAULT WALLET FOR AUTO-TRADING:');
+            Object.keys(this.wallets).forEach((walletName, index) => {
+                console.log(`   ${index + 1}. ${walletName}`);
+            });
+            
+            const walletChoice = await this.getUserInput('\nSelect wallet number: ');
+            const walletIndex = parseInt(walletChoice) - 1;
+            const walletNames = Object.keys(this.wallets);
+            
+            if (walletIndex >= 0 && walletIndex < walletNames.length) {
+                this.autoTradingConfig.defaultWallet = walletNames[walletIndex];
+                console.log(`✅ Default wallet set to: ${this.autoTradingConfig.defaultWallet}`);
+            }
         }
         
-        const choice = await this.getUserInput(`${currentStatus ? 'Disable' : 'Enable'} Auto-Trading? (y/n): `);
+        // Configure default amount
+        const amount = await this.getUserInput('\nDefault trade amount in WLD (current: ' + this.autoTradingConfig.defaultAmount + '): ');
+        if (amount && !isNaN(parseFloat(amount))) {
+            this.autoTradingConfig.defaultAmount = parseFloat(amount);
+            console.log(`✅ Default amount set to: ${this.autoTradingConfig.defaultAmount} WLD`);
+        }
+        
+        const choice = await this.getUserInput(`\n${currentStatus ? 'Disable' : 'Enable'} Auto-Trading? (y/n): `);
         
         if (choice.toLowerCase() === 'y') {
             if (!currentStatus) {
@@ -8407,14 +8508,16 @@ class WorldchainTradingBot {
                 const confirm = await this.getUserInput('Type "CONFIRM" to enable auto-trading: ');
                 
                 if (confirm === 'CONFIRM') {
-                    this.algoritmitStrategy.setAutoTradingMode(true);
-                    console.log('🚀 Auto-Trading ENABLED! ALGORITMIT will now trade automatically');
-                    console.log('📊 Monitor the ML Statistics to track performance');
+                    this.setAutoTradingMode(true);
+                    this.setEnabled(true);
+                    console.log('🚀 Auto-Trading ENABLED! Bot will now trade automatically');
+                    console.log(`💰 Using wallet: ${this.autoTradingConfig.defaultWallet}`);
+                    console.log(`💸 Default amount: ${this.autoTradingConfig.defaultAmount} WLD`);
                 } else {
                     console.log('❌ Auto-trading not enabled');
                 }
             } else {
-                this.algoritmitStrategy.setAutoTradingMode(false);
+                this.setAutoTradingMode(false);
                 console.log('✅ Auto-Trading DISABLED');
             }
         }
@@ -8428,25 +8531,19 @@ class WorldchainTradingBot {
         console.log('📊 ALGORITMIT MACHINE LEARNING STATISTICS');
         console.log('════════════════════════════════════════════════════════════');
         
-        const stats = this.algoritmitStrategy.getStatistics();
+        const stats = this.getStatistics();
         
         console.log('\n🤖 STRATEGY STATUS:');
         console.log(`   Status: ${stats.enabled ? '🟢 ENABLED' : '🔴 DISABLED'}`);
         console.log(`   Learning Mode: ${stats.learningMode ? '🟢 ACTIVE' : '🔴 INACTIVE'}`);
         console.log(`   Auto-Trading: ${stats.autoTradingMode ? '🟢 ACTIVE' : '🔴 INACTIVE'}`);
         
-        console.log('\n🧠 MACHINE LEARNING METRICS:');
-        console.log(`   Total Predictions: ${stats.totalPredictions}`);
-        console.log(`   ML Accuracy: ${stats.accuracy}`);
-        console.log(`   Training Data Points: ${stats.trainingDataPoints}`);
-        console.log(`   Last Model Retraining: ${stats.lastRetraining}`);
-        
-        console.log('\n💹 TRADING PERFORMANCE:');
+        console.log('\n⚡ ULTRA-FAST TRADING METRICS:');
         console.log(`   Total Trades: ${stats.totalTrades}`);
-        console.log(`   Profitable Trades: ${stats.profitableTrades}`);
-        console.log(`   Win Rate: ${stats.winRate}`);
-        console.log(`   Total Profit/Loss: ${stats.totalProfit}`);
+        console.log(`   Success Rate: ${stats.successRate.toFixed(1)}%`);
         console.log(`   Active Positions: ${stats.activePositions}`);
+        console.log(`   Default Wallet: ${this.autoTradingConfig.defaultWallet || 'Not set'}`);
+        console.log(`   Default Amount: ${this.autoTradingConfig.defaultAmount} WLD`);
         
         console.log('\n📈 INTERPRETATION:');
         const accuracy = parseFloat(stats.accuracy);
