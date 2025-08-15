@@ -29,7 +29,7 @@ print_error() {
 }
 
 # Configuration
-PACKAGE_URL="https://github.com/notevayasconadan/eva/raw/cursor/check-repository-branches-for-latest-code-05c1/releases/algoritmit-ubuntu-server-v4.0-novice.tar.gz"
+PACKAGE_URL="https://github.com/notevayasconadan/eva/raw/cursor/check-repository-branches-for-latest-code-05c1/algoritmit-ubuntu-server-v4.0-novice.tar.gz"
 INSTALL_DIR="/opt/algoritmit-trading-bot"
 SERVICE_NAME="algoritmit-trading-bot"
 SERVICE_USER="algoritmit"
