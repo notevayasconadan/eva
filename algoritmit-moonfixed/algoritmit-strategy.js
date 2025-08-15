@@ -2,8 +2,8 @@ const fs = require('fs');
 const path = require('path');
 const EventEmitter = require('events');
 
-// Machine Learning Components
-class SimpleLinearRegression {
+// OPUS 4.1: Ultra-fast Machine Learning Components
+class UltraFastLinearRegression {
     constructor() {
         this.slope = 0;
         this.intercept = 0;
@@ -34,8 +34,8 @@ class SimpleLinearRegression {
     }
 }
 
-class MovingAveragePredictor {
-    constructor(window = 10) {
+class UltraFastMovingAveragePredictor {
+    constructor(window = 5) { // Reduced window for ultra-speed
         this.window = window;
         this.values = [];
     }
@@ -54,8 +54,8 @@ class MovingAveragePredictor {
     
     getTrend() {
         if (this.values.length < 2) return 0;
-        const recent = this.values.slice(-Math.min(5, this.values.length));
-        const older = this.values.slice(0, Math.min(5, this.values.length));
+        const recent = this.values.slice(-Math.min(3, this.values.length)); // Reduced for speed
+        const older = this.values.slice(0, Math.min(3, this.values.length));
         
         const recentAvg = recent.reduce((a, b) => a + b, 0) / recent.length;
         const olderAvg = older.reduce((a, b) => a + b, 0) / older.length;
@@ -64,7 +64,7 @@ class MovingAveragePredictor {
     }
 }
 
-class PatternRecognition {
+class UltraFastPatternRecognition {
     constructor() {
         this.patterns = {
             bullish: [],
@@ -76,15 +76,15 @@ class PatternRecognition {
     addPattern(priceSequence, outcome) {
         const pattern = {
             sequence: [...priceSequence],
-            outcome: outcome, // 'bullish', 'bearish', 'neutral'
+            outcome: outcome,
             timestamp: Date.now()
         };
         
         this.patterns[outcome].push(pattern);
         
-        // Keep only recent patterns (last 1000 per type)
-        if (this.patterns[outcome].length > 1000) {
-            this.patterns[outcome] = this.patterns[outcome].slice(-1000);
+        // Keep only recent patterns (last 500 per type for speed)
+        if (this.patterns[outcome].length > 500) {
+            this.patterns[outcome] = this.patterns[outcome].slice(-500);
         }
     }
     
@@ -106,640 +106,484 @@ class PatternRecognition {
     calculateSimilarity(seq1, seq2) {
         if (seq1.length !== seq2.length) return 0;
         
-        const normalize = (arr) => {
-            const min = Math.min(...arr);
-            const max = Math.max(...arr);
-            const range = max - min;
-            if (range === 0) return arr.map(() => 0);
-            return arr.map(x => (x - min) / range);
-        };
+        const differences = seq1.map((val, i) => Math.abs(val - seq2[i]));
+        const avgDifference = differences.reduce((a, b) => a + b, 0) / differences.length;
+        const maxVal = Math.max(...seq1, ...seq2);
         
-        const norm1 = normalize(seq1);
-        const norm2 = normalize(seq2);
-        
-        let similarity = 0;
-        for (let i = 0; i < norm1.length; i++) {
-            similarity += 1 - Math.abs(norm1[i] - norm2[i]);
-        }
-        
-        return similarity / norm1.length;
+        return Math.max(0, 1 - (avgDifference / maxVal));
     }
 }
 
-class AlgoritmitStrategy extends EventEmitter {
-    constructor(tradingEngine, sinclaveEngine, priceDatabase, config) {
-        super();
-        
+// OPUS 4.1: Ultra-fast DIP Strategy Implementation
+class UltraFastDIPStrategy {
+    constructor(tradingEngine, config = {}) {
         this.tradingEngine = tradingEngine;
-        this.sinclaveEngine = sinclaveEngine;
-        this.priceDatabase = priceDatabase;
-        this.config = config;
-        
-        // ML Models
-        this.pricePredictor = new SimpleLinearRegression();
-        this.volumePredictor = new MovingAveragePredictor(20);
-        this.patternRecognizer = new PatternRecognition();
-        
-        // Strategy Configuration
-        this.strategyConfig = {
-            enabled: false,
-            learningMode: true, // Learn from existing trades
-            autoTradingMode: false, // Auto-execute based on ML predictions
-            confidenceThreshold: 0.7, // Minimum confidence for auto-trading
-            maxPositionSize: 1.0, // Maximum WLD per trade
-            riskTolerance: 0.05, // 5% risk tolerance
-            learningPeriod: 100, // Number of data points to learn from
-            predictionWindow: 5, // Minutes to predict ahead
-            retrainInterval: 24 * 60 * 60 * 1000, // Retrain every 24 hours
+        this.config = {
+            dipThreshold: config.dipThreshold || 3, // 3% dip threshold for ultra-speed
+            monitoringInterval: config.monitoringInterval || 250, // 250ms for ultra-speed
+            maxSlippage: config.maxSlippage || 30, // 30% slippage for ultra-speed
+            gasPrice: config.gasPrice || '200', // 200 gwei for ultra-priority
+            gasLimit: config.gasLimit || 1500000, // High gas limit
+            priorityFee: config.priorityFee || '100', // 100 gwei priority fee
+            ...config
         };
         
-        // Data Storage
-        this.trainingData = {
-            prices: [],
-            volumes: [],
-            trades: [],
-            outcomes: []
+        this.isRunning = false;
+        this.monitoringTokens = new Set();
+        this.priceHistory = new Map();
+        this.dipAlerts = new Map();
+        this.executionStats = {
+            totalExecutions: 0,
+            successfulExecutions: 0,
+            totalVolume: 0,
+            averageExecutionTime: 0,
+            lastExecution: null
         };
         
-        // Model Performance Metrics
-        this.metrics = {
-            totalPredictions: 0,
-            correctPredictions: 0,
-            accuracy: 0,
-            profitableTrades: 0,
-            totalTrades: 0,
-            totalProfit: 0,
-            lastRetraining: 0
+        // OPUS 4.1: Ultra-fast prediction models
+        this.pricePredictor = new UltraFastMovingAveragePredictor(5);
+        this.patternRecognizer = new UltraFastPatternRecognition();
+        this.linearRegression = new UltraFastLinearRegression();
+        
+        // OPUS 4.1: Event emitter for real-time updates
+        this.events = new EventEmitter();
+        
+        console.log('🚀 OPUS 4.1 Ultra-Fast DIP Strategy initialized');
+        console.log(`⚡ Monitoring interval: ${this.config.monitoringInterval}ms`);
+        console.log(`🔥 Dip threshold: ${this.config.dipThreshold}%`);
+        console.log(`💨 Max slippage: ${this.config.maxSlippage}%`);
+        console.log(`⛽ Gas price: ${this.config.gasPrice} gwei`);
+    }
+
+    // OPUS 4.1: Ultra-fast DIP detection with zero delays
+    async detectDIP(tokenAddress, currentPrice) {
+        const startTime = Date.now();
+        
+        try {
+            const priceHistory = this.priceHistory.get(tokenAddress) || [];
+            const now = Date.now();
+            
+            // OPUS 4.1: Add current price to history
+            priceHistory.push({
+                price: currentPrice,
+                timestamp: now
+            });
+            
+            // OPUS 4.1: Keep only recent prices (last 10 for speed)
+            if (priceHistory.length > 10) {
+                priceHistory.splice(0, priceHistory.length - 10);
+            }
+            
+            this.priceHistory.set(tokenAddress, priceHistory);
+            
+            // OPUS 4.1: Calculate price change
+            if (priceHistory.length >= 2) {
+                const previousPrice = priceHistory[priceHistory.length - 2].price;
+                const priceChange = ((currentPrice - previousPrice) / previousPrice) * 100;
+                
+                // OPUS 4.1: Check for DIP
+                if (priceChange <= -this.config.dipThreshold) {
+                    const dipInfo = {
+                        tokenAddress,
+                        currentPrice,
+                        previousPrice,
+                        priceChange,
+                        dipPercentage: Math.abs(priceChange),
+                        timestamp: now,
+                        detectionTime: Date.now() - startTime
+                    };
+                    
+                    console.log(`🚀 DIP DETECTED! ${tokenAddress}: ${priceChange.toFixed(2)}% drop`);
+                    this.events.emit('dipDetected', dipInfo);
+                    
+                    return dipInfo;
+                }
+            }
+            
+            return null;
+            
+        } catch (error) {
+            console.error('OPUS 4.1 DIP detection error:', error.message);
+            return null;
+        }
+    }
+
+    // OPUS 4.1: Ultra-fast DIP execution with maximum speed
+    async executeDIPBuy(wallet, dipInfo, amountInWLD) {
+        const startTime = Date.now();
+        
+        try {
+            console.log(`🎯 Executing OPUS 4.1 Ultra-Fast DIP Buy...`);
+            console.log(`💰 Amount: ${amountInWLD} WLD`);
+            console.log(`📉 Dip: ${dipInfo.dipPercentage.toFixed(2)}%`);
+            
+            // OPUS 4.1: Execute ultra-fast DIP buy
+            const result = await this.tradingEngine.executeUltraFastDIPBuy(
+                wallet,
+                dipInfo.tokenAddress,
+                amountInWLD,
+                this.config.maxSlippage
+            );
+            
+            const executionTime = Date.now() - startTime;
+            
+            // OPUS 4.1: Update execution stats
+            this.executionStats.totalExecutions++;
+            this.executionStats.totalVolume += amountInWLD;
+            
+            if (result.success) {
+                this.executionStats.successfulExecutions++;
+                this.executionStats.lastExecution = {
+                    ...result,
+                    dipInfo,
+                    executionTime
+                };
+                
+                console.log(`✅ DIP Buy Executed Successfully!`);
+                console.log(`⚡ Execution time: ${executionTime}ms`);
+                console.log(`🔥 Gas price: ${result.gasPrice} gwei`);
+                console.log(`📊 TX Hash: ${result.txHash}`);
+                
+                this.events.emit('dipExecuted', {
+                    ...result,
+                    dipInfo,
+                    executionTime
+                });
+            } else {
+                console.log(`❌ DIP Buy Failed: ${result.error}`);
+                this.events.emit('dipFailed', {
+                    ...result,
+                    dipInfo,
+                    executionTime
+                });
+            }
+            
+            // OPUS 4.1: Update average execution time
+            this.executionStats.averageExecutionTime = 
+                (this.executionStats.averageExecutionTime * (this.executionStats.totalExecutions - 1) + executionTime) / 
+                this.executionStats.totalExecutions;
+            
+            return result;
+            
+        } catch (error) {
+            const executionTime = Date.now() - startTime;
+            console.error('OPUS 4.1 DIP execution error:', error.message);
+            
+            this.events.emit('dipError', {
+                error: error.message,
+                dipInfo,
+                executionTime
+            });
+            
+            return {
+                success: false,
+                error: error.message,
+                executionTime
+            };
+        }
+    }
+
+    // OPUS 4.1: Ultra-fast continuous DIP monitoring
+    async startDIPMonitoring(wallet, tokenAddresses, amountInWLD) {
+        if (this.isRunning) {
+            console.log('⚠️ DIP monitoring is already running');
+            return;
+        }
+        
+        console.log(`🚀 Starting OPUS 4.1 Ultra-Fast DIP Monitoring...`);
+        console.log(`📊 Monitoring ${tokenAddresses.length} tokens`);
+        console.log(`💰 Buy amount: ${amountInWLD} WLD per DIP`);
+        
+        this.isRunning = true;
+        this.monitoringTokens = new Set(tokenAddresses);
+        
+        const monitor = async () => {
+            if (!this.isRunning) return;
+            
+            try {
+                // OPUS 4.1: Get all prices in parallel
+                const pricePromises = Array.from(this.monitoringTokens).map(async (tokenAddress) => {
+                    try {
+                        const priceData = await this.tradingEngine.getTokenPrice(tokenAddress);
+                        return { tokenAddress, price: priceData.price };
+                    } catch (error) {
+                        return { tokenAddress, error: error.message };
+                    }
+                });
+                
+                const prices = await Promise.all(pricePromises);
+                
+                // OPUS 4.1: Process prices and detect DIPs
+                for (const priceData of prices) {
+                    if (priceData.price && !priceData.error) {
+                        const dipInfo = await this.detectDIP(priceData.tokenAddress, priceData.price);
+                        
+                        if (dipInfo) {
+                            // OPUS 4.1: Execute DIP buy immediately
+                            await this.executeDIPBuy(wallet, dipInfo, amountInWLD);
+                        }
+                    }
+                }
+                
+            } catch (error) {
+                console.error('OPUS 4.1 DIP monitoring error:', error.message);
+            }
         };
         
-        // Active Positions
-        this.activePositions = new Map();
+        // OPUS 4.1: Execute immediately and set interval
+        await monitor();
+        this.monitoringInterval = setInterval(monitor, this.config.monitoringInterval);
         
-        // File Paths
-        this.dataPath = path.join(process.cwd(), 'algoritmit-data.json');
-        this.modelPath = path.join(process.cwd(), 'algoritmit-models.json');
-        this.metricsPath = path.join(process.cwd(), 'algoritmit-metrics.json');
+        this.events.emit('monitoringStarted', {
+            tokenAddresses: Array.from(this.monitoringTokens),
+            config: this.config
+        });
         
-        // Load existing data
-        this.loadData();
-        this.loadMetrics();
-        
-        // Auto-retraining timer
-        this.retrainingTimer = null;
-        
-        console.log('🤖 ALGORITMIT Strategy initialized');
+        return this.monitoringInterval;
     }
-    
-    // Enable/Disable Strategy
-    setEnabled(enabled) {
-        this.strategyConfig.enabled = enabled;
-        
-        if (enabled) {
-            console.log('🤖 ALGORITMIT Strategy ENABLED');
-            this.startMonitoring();
-        } else {
-            console.log('🤖 ALGORITMIT Strategy DISABLED');
-            this.stopMonitoring();
+
+    // OPUS 4.1: Stop DIP monitoring
+    stopDIPMonitoring() {
+        if (!this.isRunning) {
+            console.log('⚠️ DIP monitoring is not running');
+            return;
         }
         
-        this.saveData();
-    }
-    
-    // Set Learning Mode
-    setLearningMode(enabled) {
-        this.strategyConfig.learningMode = enabled;
-        console.log(`🧠 Learning Mode: ${enabled ? 'ENABLED' : 'DISABLED'}`);
-        this.saveData();
-    }
-    
-    // Set Auto-Trading Mode
-    setAutoTradingMode(enabled) {
-        this.strategyConfig.autoTradingMode = enabled;
-        console.log(`⚡ Auto-Trading Mode: ${enabled ? 'ENABLED' : 'DISABLED'}`);
+        console.log('🛑 Stopping OPUS 4.1 DIP Monitoring...');
         
-        if (enabled && !this.strategyConfig.enabled) {
-            console.log('⚠️  Auto-trading requires strategy to be enabled');
-            return false;
-        }
-        
-        this.saveData();
-        return true;
-    }
-    
-    // Configure Strategy Parameters
-    configure(params) {
-        Object.assign(this.strategyConfig, params);
-        console.log('⚙️  ALGORITMIT configuration updated');
-        this.saveData();
-    }
-    
-    // Start Monitoring
-    startMonitoring() {
-        if (this.monitoringInterval) {
-            clearInterval(this.monitoringInterval);
-        }
-        
-        // Monitor every minute
-        this.monitoringInterval = setInterval(async () => {
-            await this.processMarketData();
-        }, 60000);
-        
-        // Setup retraining timer
-        if (this.retrainingTimer) {
-            clearInterval(this.retrainingTimer);
-        }
-        
-        this.retrainingTimer = setInterval(async () => {
-            await this.retrainModels();
-        }, this.strategyConfig.retrainInterval);
-        
-        console.log('📊 ALGORITMIT monitoring started');
-    }
-    
-    // Stop Monitoring
-    stopMonitoring() {
+        this.isRunning = false;
         if (this.monitoringInterval) {
             clearInterval(this.monitoringInterval);
             this.monitoringInterval = null;
         }
         
-        if (this.retrainingTimer) {
-            clearInterval(this.retrainingTimer);
-            this.retrainingTimer = null;
-        }
-        
-        console.log('📊 ALGORITMIT monitoring stopped');
+        this.events.emit('monitoringStopped', {
+            stats: this.executionStats
+        });
     }
-    
-    // Process Market Data
-    async processMarketData() {
-        try {
-            if (!this.priceDatabase || !this.priceDatabase.isRunning) {
-                return;
-            }
-            
-            // Get all tracked tokens
-            const trackedTokens = Array.from(this.priceDatabase.trackedTokens);
-            
-            for (const tokenAddress of trackedTokens) {
-                await this.analyzeToken(tokenAddress);
-            }
-            
-        } catch (error) {
-            console.error('❌ Error processing market data:', error.message);
-        }
-    }
-    
-    // Analyze Individual Token
-    async analyzeToken(tokenAddress) {
-        try {
-            const priceData = this.priceDatabase.priceData.get(tokenAddress);
-            if (!priceData || priceData.prices.length < 10) {
-                return; // Need at least 10 data points
-            }
-            
-            const currentPrice = priceData.currentPrice;
-            const recentPrices = priceData.prices.slice(-20).map(p => p.price);
-            
-            // Add to training data if in learning mode
-            if (this.strategyConfig.learningMode) {
-                this.addTrainingData(tokenAddress, currentPrice, recentPrices);
-            }
-            
-            // Make prediction if auto-trading is enabled
-            if (this.strategyConfig.autoTradingMode) {
-                await this.makePredictionAndTrade(tokenAddress, currentPrice, recentPrices);
-            }
-            
-        } catch (error) {
-            console.error(`❌ Error analyzing token ${tokenAddress}:`, error.message);
-        }
-    }
-    
-    // Add Training Data
-    addTrainingData(tokenAddress, currentPrice, priceSequence) {
-        if (priceSequence.length < 5) return;
+
+    // OPUS 4.1: Ultra-fast batch DIP execution
+    async executeBatchDIPBuys(wallet, dipInfos, amountInWLD) {
+        const startTime = Date.now();
         
-        // Create features from price sequence
-        const features = this.extractFeatures(priceSequence);
+        console.log(`🚀 Executing OPUS 4.1 Batch DIP Buys...`);
+        console.log(`📊 DIPs to execute: ${dipInfos.length}`);
         
-        // Store for training
-        if (!this.trainingData[tokenAddress]) {
-            this.trainingData[tokenAddress] = {
-                features: [],
-                targets: [],
-                patterns: []
-            };
-        }
+        // OPUS 4.1: Execute all DIP buys in parallel
+        const executionPromises = dipInfos.map(dipInfo => 
+            this.executeDIPBuy(wallet, dipInfo, amountInWLD)
+        );
         
-        this.trainingData[tokenAddress].features.push(features);
-        this.trainingData[tokenAddress].targets.push(currentPrice);
+        const results = await Promise.all(executionPromises);
+        const totalTime = Date.now() - startTime;
         
-        // Keep only recent data
-        if (this.trainingData[tokenAddress].features.length > this.strategyConfig.learningPeriod) {
-            this.trainingData[tokenAddress].features.shift();
-            this.trainingData[tokenAddress].targets.shift();
-        }
+        const successCount = results.filter(r => r.success).length;
         
-        // Pattern recognition
-        if (priceSequence.length >= 5) {
-            const pattern = priceSequence.slice(-5);
-            const outcome = this.classifyOutcome(priceSequence);
-            this.patternRecognizer.addPattern(pattern, outcome);
-        }
-    }
-    
-    // Extract Features from Price Data
-    extractFeatures(prices) {
-        if (prices.length < 5) return [];
-        
-        const features = [];
-        
-        // Price-based features
-        const currentPrice = prices[prices.length - 1];
-        const previousPrice = prices[prices.length - 2];
-        const priceChange = (currentPrice - previousPrice) / previousPrice;
-        
-        features.push(priceChange); // Recent price change
-        
-        // Moving averages
-        const sma5 = prices.slice(-5).reduce((a, b) => a + b, 0) / 5;
-        const sma10 = prices.slice(-Math.min(10, prices.length)).reduce((a, b) => a + b, 0) / Math.min(10, prices.length);
-        
-        features.push((currentPrice - sma5) / sma5); // Distance from SMA5
-        features.push((currentPrice - sma10) / sma10); // Distance from SMA10
-        
-        // Volatility
-        const returns = [];
-        for (let i = 1; i < prices.length; i++) {
-            returns.push((prices[i] - prices[i-1]) / prices[i-1]);
-        }
-        const volatility = Math.sqrt(returns.reduce((sum, r) => sum + r * r, 0) / returns.length);
-        features.push(volatility);
-        
-        // Trend strength
-        const trend = (prices[prices.length - 1] - prices[0]) / prices[0];
-        features.push(trend);
-        
-        return features;
-    }
-    
-    // Classify Outcome for Pattern Recognition
-    classifyOutcome(prices) {
-        if (prices.length < 10) return 'neutral';
-        
-        const recent = prices.slice(-5);
-        const older = prices.slice(-10, -5);
-        
-        const recentAvg = recent.reduce((a, b) => a + b, 0) / recent.length;
-        const olderAvg = older.reduce((a, b) => a + b, 0) / older.length;
-        
-        const change = (recentAvg - olderAvg) / olderAvg;
-        
-        if (change > 0.02) return 'bullish';
-        if (change < -0.02) return 'bearish';
-        return 'neutral';
-    }
-    
-    // Make Prediction and Execute Trade
-    async makePredictionAndTrade(tokenAddress, currentPrice, priceSequence) {
-        try {
-            if (!this.trainingData[tokenAddress] || 
-                this.trainingData[tokenAddress].features.length < 10) {
-                return; // Not enough training data
-            }
-            
-            // Extract current features
-            const currentFeatures = this.extractFeatures(priceSequence);
-            
-            // Make price prediction
-            const pricePrediction = this.predictPrice(tokenAddress, currentFeatures);
-            
-            // Pattern recognition
-            const patternMatch = this.patternRecognizer.recognizePattern(priceSequence.slice(-5));
-            
-            // Combine predictions
-            const signal = this.combineSignals(pricePrediction, patternMatch, currentPrice);
-            
-            // Execute trade if confidence is high enough
-            if (signal.confidence >= this.strategyConfig.confidenceThreshold) {
-                await this.executeMlTrade(tokenAddress, signal, currentPrice);
-            }
-            
-            // Update metrics
-            this.metrics.totalPredictions++;
-            this.saveMetrics();
-            
-        } catch (error) {
-            console.error(`❌ Error in ML prediction for ${tokenAddress}:`, error.message);
-        }
-    }
-    
-    // Predict Price using Linear Regression
-    predictPrice(tokenAddress, features) {
-        const data = this.trainingData[tokenAddress];
-        
-        if (data.features.length < 10) {
-            return { prediction: 0, confidence: 0 };
-        }
-        
-        try {
-            // Simple prediction based on trend
-            const recentTargets = data.targets.slice(-10);
-            const timePoints = recentTargets.map((_, i) => i);
-            
-            const predictor = new SimpleLinearRegression();
-            predictor.train(timePoints, recentTargets);
-            
-            const prediction = predictor.predict(timePoints.length);
-            const confidence = Math.min(0.9, Math.max(0.1, 1 - Math.abs(predictor.slope) * 0.1));
-            
-            return { prediction, confidence };
-            
-        } catch (error) {
-            return { prediction: 0, confidence: 0 };
-        }
-    }
-    
-    // Combine Multiple Signals
-    combineSignals(pricePrediction, patternMatch, currentPrice) {
-        const signals = [];
-        
-        // Price prediction signal
-        if (pricePrediction.confidence > 0.3) {
-            const priceChange = (pricePrediction.prediction - currentPrice) / currentPrice;
-            if (priceChange > 0.01) {
-                signals.push({ type: 'buy', strength: pricePrediction.confidence, reason: 'price_prediction' });
-            } else if (priceChange < -0.01) {
-                signals.push({ type: 'sell', strength: pricePrediction.confidence, reason: 'price_prediction' });
-            }
-        }
-        
-        // Pattern recognition signal
-        if (patternMatch.confidence > 0.5) {
-            if (patternMatch.type === 'bullish') {
-                signals.push({ type: 'buy', strength: patternMatch.confidence, reason: 'pattern_bullish' });
-            } else if (patternMatch.type === 'bearish') {
-                signals.push({ type: 'sell', strength: patternMatch.confidence, reason: 'pattern_bearish' });
-            }
-        }
-        
-        // Combine signals
-        if (signals.length === 0) {
-            return { action: 'hold', confidence: 0, reasons: [] };
-        }
-        
-        const buySignals = signals.filter(s => s.type === 'buy');
-        const sellSignals = signals.filter(s => s.type === 'sell');
-        
-        const buyStrength = buySignals.reduce((sum, s) => sum + s.strength, 0) / Math.max(1, buySignals.length);
-        const sellStrength = sellSignals.reduce((sum, s) => sum + s.strength, 0) / Math.max(1, sellSignals.length);
-        
-        if (buyStrength > sellStrength && buyStrength > 0.5) {
-            return {
-                action: 'buy',
-                confidence: buyStrength,
-                reasons: buySignals.map(s => s.reason)
-            };
-        } else if (sellStrength > buyStrength && sellStrength > 0.5) {
-            return {
-                action: 'sell',
-                confidence: sellStrength,
-                reasons: sellSignals.map(s => s.reason)
-            };
-        }
-        
-        return { action: 'hold', confidence: Math.max(buyStrength, sellStrength), reasons: [] };
-    }
-    
-    // Execute ML-Based Trade
-    async executeMlTrade(tokenAddress, signal, currentPrice) {
-        try {
-            const priceData = this.priceDatabase.priceData.get(tokenAddress);
-            if (!priceData) return;
-            
-            console.log(`🤖 ALGORITMIT Signal: ${signal.action.toUpperCase()} ${priceData.symbol}`);
-            console.log(`   🎯 Confidence: ${(signal.confidence * 100).toFixed(1)}%`);
-            console.log(`   📊 Reasons: ${signal.reasons.join(', ')}`);
-            console.log(`   💰 Price: ${currentPrice.toFixed(8)} WLD`);
-            
-            // Check if we already have a position
-            const existingPosition = this.activePositions.get(tokenAddress);
-            
-            if (signal.action === 'buy' && !existingPosition) {
-                await this.executeBuy(tokenAddress, currentPrice, signal);
-            } else if (signal.action === 'sell' && existingPosition) {
-                await this.executeSell(tokenAddress, currentPrice, signal, existingPosition);
-            }
-            
-        } catch (error) {
-            console.error(`❌ Error executing ML trade:`, error.message);
-        }
-    }
-    
-    // Execute Buy Order
-    async executeBuy(tokenAddress, currentPrice, signal) {
-        try {
-            // Calculate position size based on confidence and risk tolerance
-            const baseAmount = this.strategyConfig.maxPositionSize;
-            const confidenceMultiplier = signal.confidence;
-            const riskAdjustedAmount = baseAmount * confidenceMultiplier * (1 - this.strategyConfig.riskTolerance);
-            
-            const tradeAmount = Math.max(0.01, Math.min(baseAmount, riskAdjustedAmount));
-            
-            // Find a wallet to use (use first available)
-            const wallets = Object.values(this.priceDatabase.findWalletByAddress ? {} : {});
-            if (wallets.length === 0) {
-                console.log('❌ No wallets available for ML trading');
-                return;
-            }
-            
-            // For now, we'll simulate the trade execution
-            // In a real implementation, you'd use the trading engine
-            console.log(`🤖 ML BUY EXECUTED (SIMULATED)`);
-            console.log(`   💰 Amount: ${tradeAmount.toFixed(6)} WLD`);
-            console.log(`   📊 Expected tokens: ~${(tradeAmount / currentPrice).toFixed(2)}`);
-            
-            // Record the position
-            const position = {
-                tokenAddress,
-                entryPrice: currentPrice,
-                entryAmount: tradeAmount,
-                entryTime: Date.now(),
-                signal: signal,
-                status: 'open'
-            };
-            
-            this.activePositions.set(tokenAddress, position);
-            this.metrics.totalTrades++;
-            
-            // Emit event
-            this.emit('mlTradeExecuted', {
-                type: 'buy',
-                tokenAddress,
-                amount: tradeAmount,
-                price: currentPrice,
-                confidence: signal.confidence
-            });
-            
-        } catch (error) {
-            console.error('❌ Error executing ML buy:', error.message);
-        }
-    }
-    
-    // Execute Sell Order
-    async executeSell(tokenAddress, currentPrice, signal, position) {
-        try {
-            const profit = (currentPrice - position.entryPrice) / position.entryPrice;
-            const holdTime = Date.now() - position.entryTime;
-            
-            console.log(`🤖 ML SELL EXECUTED (SIMULATED)`);
-            console.log(`   💰 Entry: ${position.entryPrice.toFixed(8)} WLD`);
-            console.log(`   💰 Exit: ${currentPrice.toFixed(8)} WLD`);
-            console.log(`   📊 Profit: ${(profit * 100).toFixed(2)}%`);
-            console.log(`   ⏰ Hold Time: ${Math.round(holdTime / 60000)} minutes`);
-            
-            // Update metrics
-            if (profit > 0) {
-                this.metrics.profitableTrades++;
-                this.metrics.correctPredictions++;
-            }
-            this.metrics.totalProfit += profit * position.entryAmount;
-            
-            // Close position
-            this.activePositions.delete(tokenAddress);
-            
-            // Emit event
-            this.emit('mlTradeExecuted', {
-                type: 'sell',
-                tokenAddress,
-                profit: profit,
-                holdTime: holdTime,
-                confidence: signal.confidence
-            });
-            
-        } catch (error) {
-            console.error('❌ Error executing ML sell:', error.message);
-        }
-    }
-    
-    // Retrain Models
-    async retrainModels() {
-        try {
-            console.log('🧠 Retraining ALGORITMIT models...');
-            
-            let totalDataPoints = 0;
-            for (const [tokenAddress, data] of Object.entries(this.trainingData)) {
-                if (data.features && data.features.length > 10) {
-                    totalDataPoints += data.features.length;
-                }
-            }
-            
-            console.log(`📊 Retraining with ${totalDataPoints} data points`);
-            
-            // Update accuracy metrics
-            if (this.metrics.totalPredictions > 0) {
-                this.metrics.accuracy = this.metrics.correctPredictions / this.metrics.totalPredictions;
-            }
-            
-            this.metrics.lastRetraining = Date.now();
-            this.saveMetrics();
-            
-            console.log(`✅ Model retraining complete. Accuracy: ${(this.metrics.accuracy * 100).toFixed(1)}%`);
-            
-        } catch (error) {
-            console.error('❌ Error retraining models:', error.message);
-        }
-    }
-    
-    // Get Strategy Statistics
-    getStatistics() {
-        const winRate = this.metrics.totalTrades > 0 ? 
-            (this.metrics.profitableTrades / this.metrics.totalTrades * 100) : 0;
+        console.log(`✅ Batch DIP execution completed`);
+        console.log(`📊 Success: ${successCount}/${dipInfos.length}`);
+        console.log(`⚡ Total time: ${totalTime}ms`);
+        console.log(`⚡ Average time: ${totalTime / dipInfos.length}ms`);
         
         return {
-            enabled: this.strategyConfig.enabled,
-            learningMode: this.strategyConfig.learningMode,
-            autoTradingMode: this.strategyConfig.autoTradingMode,
-            totalPredictions: this.metrics.totalPredictions,
-            accuracy: (this.metrics.accuracy * 100).toFixed(1) + '%',
-            totalTrades: this.metrics.totalTrades,
-            profitableTrades: this.metrics.profitableTrades,
-            winRate: winRate.toFixed(1) + '%',
-            totalProfit: this.metrics.totalProfit.toFixed(6) + ' WLD',
-            activePositions: this.activePositions.size,
-            lastRetraining: this.metrics.lastRetraining > 0 ? 
-                new Date(this.metrics.lastRetraining).toLocaleString() : 'Never',
-            trainingDataPoints: Object.values(this.trainingData)
-                .reduce((sum, data) => sum + (data.features ? data.features.length : 0), 0)
+            results,
+            totalTime,
+            successCount,
+            failureCount: dipInfos.length - successCount
         };
     }
-    
-    // Save Training Data
-    saveData() {
+
+    // OPUS 4.1: Get execution statistics
+    getExecutionStats() {
+        return {
+            ...this.executionStats,
+            successRate: this.executionStats.totalExecutions > 0 ? 
+                (this.executionStats.successfulExecutions / this.executionStats.totalExecutions) * 100 : 0,
+            isRunning: this.isRunning,
+            monitoringTokens: Array.from(this.monitoringTokens)
+        };
+    }
+
+    // OPUS 4.1: Ultra-fast price prediction
+    async predictPrice(tokenAddress) {
         try {
-            const data = {
-                strategyConfig: this.strategyConfig,
-                trainingData: this.trainingData,
+            const priceHistory = this.priceHistory.get(tokenAddress);
+            if (!priceHistory || priceHistory.length < 3) {
+                return null;
+            }
+            
+            const prices = priceHistory.map(p => p.price);
+            
+            // OPUS 4.1: Update prediction models
+            this.pricePredictor.values = prices.slice(-5);
+            
+            // OPUS 4.1: Get predictions
+            const movingAveragePrediction = this.pricePredictor.predict();
+            const trend = this.pricePredictor.getTrend();
+            
+            // OPUS 4.1: Pattern recognition
+            const pattern = this.patternRecognizer.recognizePattern(prices.slice(-5));
+            
+            return {
+                currentPrice: prices[prices.length - 1],
+                movingAveragePrediction,
+                trend,
+                pattern: pattern.type,
+                confidence: pattern.confidence,
                 timestamp: Date.now()
             };
             
-            fs.writeFileSync(this.dataPath, JSON.stringify(data, null, 2));
         } catch (error) {
-            console.error('❌ Error saving ALGORITMIT data:', error.message);
+            console.error('OPUS 4.1 Price prediction error:', error.message);
+            return null;
         }
     }
-    
-    // Load Training Data
-    loadData() {
+
+    // OPUS 4.1: Add token to monitoring
+    addTokenToMonitoring(tokenAddress) {
+        this.monitoringTokens.add(tokenAddress);
+        console.log(`📊 Added ${tokenAddress} to DIP monitoring`);
+        this.events.emit('tokenAdded', tokenAddress);
+    }
+
+    // OPUS 4.1: Remove token from monitoring
+    removeTokenFromMonitoring(tokenAddress) {
+        this.monitoringTokens.delete(tokenAddress);
+        console.log(`📊 Removed ${tokenAddress} from DIP monitoring`);
+        this.events.emit('tokenRemoved', tokenAddress);
+    }
+
+    // OPUS 4.1: Update configuration
+    updateConfig(newConfig) {
+        this.config = { ...this.config, ...newConfig };
+        console.log('⚙️ OPUS 4.1 DIP Strategy configuration updated');
+        this.events.emit('configUpdated', this.config);
+    }
+
+    // OPUS 4.1: Save strategy state
+    saveState(filePath = 'dip-strategy-state.json') {
         try {
-            if (fs.existsSync(this.dataPath)) {
-                const data = JSON.parse(fs.readFileSync(this.dataPath, 'utf8'));
+            const state = {
+                config: this.config,
+                executionStats: this.executionStats,
+                priceHistory: Object.fromEntries(this.priceHistory),
+                monitoringTokens: Array.from(this.monitoringTokens),
+                timestamp: Date.now()
+            };
+            
+            fs.writeFileSync(filePath, JSON.stringify(state, null, 2));
+            console.log(`💾 OPUS 4.1 DIP Strategy state saved to ${filePath}`);
+            
+        } catch (error) {
+            console.error('OPUS 4.1 Save state error:', error.message);
+        }
+    }
+
+    // OPUS 4.1: Load strategy state
+    loadState(filePath = 'dip-strategy-state.json') {
+        try {
+            if (fs.existsSync(filePath)) {
+                const state = JSON.parse(fs.readFileSync(filePath, 'utf8'));
                 
-                if (data.strategyConfig) {
-                    Object.assign(this.strategyConfig, data.strategyConfig);
-                }
+                this.config = { ...this.config, ...state.config };
+                this.executionStats = state.executionStats;
+                this.priceHistory = new Map(Object.entries(state.priceHistory || {}));
+                this.monitoringTokens = new Set(state.monitoringTokens || []);
                 
-                if (data.trainingData) {
-                    this.trainingData = data.trainingData;
-                }
-                
-                console.log('📊 ALGORITMIT data loaded');
+                console.log(`📂 OPUS 4.1 DIP Strategy state loaded from ${filePath}`);
+                return true;
             }
         } catch (error) {
-            console.error('❌ Error loading ALGORITMIT data:', error.message);
+            console.error('OPUS 4.1 Load state error:', error.message);
         }
-    }
-    
-    // Save Metrics
-    saveMetrics() {
-        try {
-            fs.writeFileSync(this.metricsPath, JSON.stringify(this.metrics, null, 2));
-        } catch (error) {
-            console.error('❌ Error saving ALGORITMIT metrics:', error.message);
-        }
-    }
-    
-    // Load Metrics
-    loadMetrics() {
-        try {
-            if (fs.existsSync(this.metricsPath)) {
-                const data = JSON.parse(fs.readFileSync(this.metricsPath, 'utf8'));
-                Object.assign(this.metrics, data);
-                console.log('📊 ALGORITMIT metrics loaded');
-            }
-        } catch (error) {
-            console.error('❌ Error loading ALGORITMIT metrics:', error.message);
-        }
-    }
-    
-    // Cleanup
-    cleanup() {
-        this.stopMonitoring();
-        this.saveData();
-        this.saveMetrics();
-        console.log('🤖 ALGORITMIT Strategy cleaned up');
+        return false;
     }
 }
 
-module.exports = AlgoritmitStrategy;
+// OPUS 4.1: Ultra-fast Strategy Manager
+class UltraFastStrategyManager {
+    constructor(tradingEngine) {
+        this.tradingEngine = tradingEngine;
+        this.strategies = new Map();
+        this.activeStrategies = new Set();
+        this.events = new EventEmitter();
+        
+        console.log('🚀 OPUS 4.1 Ultra-Fast Strategy Manager initialized');
+    }
+
+    // OPUS 4.1: Create DIP strategy
+    createDIPStrategy(strategyId, config = {}) {
+        const strategy = new UltraFastDIPStrategy(this.tradingEngine, config);
+        this.strategies.set(strategyId, strategy);
+        
+        console.log(`📊 Created OPUS 4.1 DIP Strategy: ${strategyId}`);
+        return strategy;
+    }
+
+    // OPUS 4.1: Get strategy
+    getStrategy(strategyId) {
+        return this.strategies.get(strategyId);
+    }
+
+    // OPUS 4.1: Start strategy
+    async startStrategy(strategyId, wallet, tokenAddresses, amountInWLD) {
+        const strategy = this.getStrategy(strategyId);
+        if (!strategy) {
+            throw new Error(`Strategy ${strategyId} not found`);
+        }
+        
+        await strategy.startDIPMonitoring(wallet, tokenAddresses, amountInWLD);
+        this.activeStrategies.add(strategyId);
+        
+        console.log(`🚀 Started OPUS 4.1 Strategy: ${strategyId}`);
+        this.events.emit('strategyStarted', strategyId);
+    }
+
+    // OPUS 4.1: Stop strategy
+    stopStrategy(strategyId) {
+        const strategy = this.getStrategy(strategyId);
+        if (!strategy) {
+            throw new Error(`Strategy ${strategyId} not found`);
+        }
+        
+        strategy.stopDIPMonitoring();
+        this.activeStrategies.delete(strategyId);
+        
+        console.log(`🛑 Stopped OPUS 4.1 Strategy: ${strategyId}`);
+        this.events.emit('strategyStopped', strategyId);
+    }
+
+    // OPUS 4.1: Get all strategies status
+    getStrategiesStatus() {
+        const status = {};
+        
+        for (const [strategyId, strategy] of this.strategies) {
+            status[strategyId] = {
+                type: 'DIP',
+                isActive: this.activeStrategies.has(strategyId),
+                stats: strategy.getExecutionStats(),
+                config: strategy.config
+            };
+        }
+        
+        return status;
+    }
+
+    // OPUS 4.1: Stop all strategies
+    stopAllStrategies() {
+        console.log('🛑 Stopping all OPUS 4.1 strategies...');
+        
+        for (const strategyId of this.activeStrategies) {
+            this.stopStrategy(strategyId);
+        }
+        
+        console.log('✅ All strategies stopped');
+    }
+}
+
+module.exports = {
+    UltraFastDIPStrategy,
+    UltraFastStrategyManager,
+    UltraFastLinearRegression,
+    UltraFastMovingAveragePredictor,
+    UltraFastPatternRecognition
+};

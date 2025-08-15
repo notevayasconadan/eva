@@ -10,6 +10,7 @@ const figlet = require('figlet');
 const AdvancedTradingEngine = require('./trading-engine');
 const TokenDiscoveryService = require('./token-discovery');
 const TelegramNotifications = require('./telegram-notifications');
+const { UltraFastDIPStrategy, UltraFastStrategyManager } = require('./algoritmit-strategy');
 require('dotenv').config();
 
 class WorldchainTradingBot {
@@ -29,6 +30,10 @@ class WorldchainTradingBot {
         this.tradingEngine = new AdvancedTradingEngine(this.provider, this.config);
         this.tokenDiscovery = new TokenDiscoveryService(this.provider, this.config);
         this.telegramNotifications = new TelegramNotifications(this.config);
+        
+        // OPUS 4.1: Initialize ultra-fast DIP strategy manager
+        this.strategyManager = new UltraFastStrategyManager(this.tradingEngine);
+        this.dipStrategy = null;
         
         // Initialize ultra-fast settings
         this.monitoringTokens = new Set();
@@ -3913,8 +3918,8 @@ class WorldchainTradingBot {
         console.log(chalk.cyan('16. 📊 Advanced Price Tracking'));
         console.log(chalk.cyan('17. ⛽ Gas Estimation'));
         console.log(chalk.cyan('18. 🌐 RPC Management'));
-        console.log(chalk.cyan('20. 🚀 OPUS 4.1 Ultra-Fast DIP Trading'));
-        console.log(chalk.red('19. 🚪 Exit'));
+        console.log(chalk.cyan('19. 🚀 OPUS 4.1 Ultra-Fast DIP Trading'));
+        console.log(chalk.red('20. 🚪 Exit'));
         console.log(chalk.gray('─'.repeat(30)));
     }
 
@@ -5969,10 +5974,10 @@ class WorldchainTradingBot {
                 case '18':
                     await this.rpcManagementMenu();
                     break;
-                case '20':
+                case '19':
                     await this.opus41DIPTradingMenu();
                     break;
-                case '19':
+                case '20':
                     console.log(chalk.green('\n👋 Thank you for using WorldChain Trading Bot!'));
                     console.log(chalk.yellow('💡 Remember to keep your private keys secure!'));
                     
@@ -10111,16 +10116,498 @@ class WorldchainTradingBot {
         console.log(chalk.gray('═'.repeat(40)));
         
         console.log(chalk.white('\nCurrent OPUS 4.1 Settings:'));
-        console.log(chalk.white(`   Ultra-Fast Gas Price: 150 gwei`));
-        console.log(chalk.white(`   Ultra-Fast Gas Limit: 1,000,000`));
-        console.log(chalk.white(`   Priority Fee: 75 gwei`));
-        console.log(chalk.white(`   Default Slippage: 20%`));
-        console.log(chalk.white(`   Price Cache: 1 second`));
+        console.log(chalk.white(`   Ultra-Fast Gas Price: 200 gwei`));
+        console.log(chalk.white(`   Ultra-Fast Gas Limit: 1,500,000`));
+        console.log(chalk.white(`   Priority Fee: 100 gwei`));
+        console.log(chalk.white(`   Default Slippage: 30%`));
+        console.log(chalk.white(`   Price Cache: 0 seconds (real-time)`));
         console.log(chalk.white(`   Fee Tier: 0.3%`));
         console.log(chalk.white(`   Transaction Deadline: 5 minutes`));
         
         console.log(chalk.yellow('\n💡 These settings are optimized for maximum speed.'));
         console.log(chalk.yellow('   Modifying them may affect execution speed.'));
+        
+        await this.getUserInput('\nPress Enter to continue...');
+    }
+
+    // OPUS 4.1: Ultra-Fast DIP Trading Menu
+    async opus41DIPTradingMenu() {
+        while (true) {
+            console.clear();
+            console.log(chalk.cyan('🚀 OPUS 4.1 Ultra-Fast DIP Trading'));
+            console.log(chalk.gray('═'.repeat(50)));
+            
+            // Show current DIP strategy status
+            if (this.dipStrategy) {
+                const stats = this.dipStrategy.getExecutionStats();
+                console.log(chalk.green(`📊 DIP Strategy Status: ${stats.isRunning ? '🟢 ACTIVE' : '🔴 STOPPED'}`));
+                console.log(chalk.white(`   Total Executions: ${stats.totalExecutions}`));
+                console.log(chalk.white(`   Success Rate: ${stats.successRate.toFixed(1)}%`));
+                console.log(chalk.white(`   Average Execution Time: ${stats.averageExecutionTime.toFixed(0)}ms`));
+                console.log(chalk.white(`   Monitoring Tokens: ${stats.monitoringTokens.length}`));
+            } else {
+                console.log(chalk.yellow('📊 DIP Strategy Status: 🔴 NOT INITIALIZED'));
+            }
+            
+            console.log(chalk.gray('─'.repeat(50)));
+            console.log(chalk.cyan('1. 🚀 Start Ultra-Fast DIP Monitoring'));
+            console.log(chalk.cyan('2. 🛑 Stop DIP Monitoring'));
+            console.log(chalk.cyan('3. ⚡ Execute Single DIP Buy'));
+            console.log(chalk.cyan('4. 📊 View Performance Statistics'));
+            console.log(chalk.cyan('5. ⚙️  Configure DIP Strategy'));
+            console.log(chalk.cyan('6. 📈 Add Token to Monitoring'));
+            console.log(chalk.cyan('7. 📉 Remove Token from Monitoring'));
+            console.log(chalk.cyan('8. 🔄 Batch DIP Execution'));
+            console.log(chalk.cyan('9. 💾 Save Strategy State'));
+            console.log(chalk.cyan('10. 📂 Load Strategy State'));
+            console.log(chalk.red('0. ⬅️  Back to Main Menu'));
+            console.log(chalk.gray('─'.repeat(50)));
+            
+            const choice = await this.getUserInput('\nSelect option: ');
+            
+            switch (choice) {
+                case '1':
+                    await this.startOPUS41DIPMonitoring();
+                    break;
+                case '2':
+                    await this.stopOPUS41DIPMonitoring();
+                    break;
+                case '3':
+                    await this.executeOPUS41SingleDIPBuy();
+                    break;
+                case '4':
+                    await this.viewOPUS41PerformanceStats();
+                    break;
+                case '5':
+                    await this.configureOPUS41DIPStrategy();
+                    break;
+                case '6':
+                    await this.addTokenToOPUS41Monitoring();
+                    break;
+                case '7':
+                    await this.removeTokenFromOPUS41Monitoring();
+                    break;
+                case '8':
+                    await this.executeOPUS41BatchDIP();
+                    break;
+                case '9':
+                    await this.saveOPUS41StrategyState();
+                    break;
+                case '10':
+                    await this.loadOPUS41StrategyState();
+                    break;
+                case '0':
+                    return;
+                default:
+                    console.log(chalk.red('❌ Invalid option'));
+                    await this.sleep(1500);
+            }
+        }
+    }
+
+    // OPUS 4.1: Start Ultra-Fast DIP Monitoring
+    async startOPUS41DIPMonitoring() {
+        console.clear();
+        console.log(chalk.cyan('🚀 Starting OPUS 4.1 Ultra-Fast DIP Monitoring'));
+        console.log(chalk.gray('═'.repeat(50)));
+        
+        if (this.wallets.length === 0) {
+            console.log(chalk.red('❌ No wallets available. Please add a wallet first.'));
+            await this.getUserInput('\nPress Enter to continue...');
+            return;
+        }
+        
+        // Select wallet
+        console.log(chalk.white('\n📋 Available Wallets:'));
+        this.wallets.forEach((wallet, index) => {
+            console.log(chalk.white(`${index + 1}. ${wallet.name} (${wallet.address})`));
+        });
+        
+        const walletChoice = await this.getUserInput('\nSelect wallet (number): ');
+        const walletIndex = parseInt(walletChoice) - 1;
+        
+        if (walletIndex < 0 || walletIndex >= this.wallets.length) {
+            console.log(chalk.red('❌ Invalid wallet selection'));
+            await this.getUserInput('\nPress Enter to continue...');
+            return;
+        }
+        
+        const wallet = this.wallets[walletIndex];
+        
+        // Get token addresses
+        const tokenInput = await this.getUserInput('\nEnter token addresses (comma-separated): ');
+        const tokenAddresses = tokenInput.split(',').map(addr => addr.trim()).filter(addr => addr);
+        
+        if (tokenAddresses.length === 0) {
+            console.log(chalk.red('❌ No valid token addresses provided'));
+            await this.getUserInput('\nPress Enter to continue...');
+            return;
+        }
+        
+        // Get amount per DIP
+        const amountInput = await this.getUserInput('Enter amount in WLD per DIP: ');
+        const amount = parseFloat(amountInput);
+        
+        if (isNaN(amount) || amount <= 0) {
+            console.log(chalk.red('❌ Invalid amount'));
+            await this.getUserInput('\nPress Enter to continue...');
+            return;
+        }
+        
+        // Get configuration
+        const thresholdInput = await this.getUserInput('Enter DIP threshold % (default 3): ');
+        const threshold = thresholdInput ? parseFloat(thresholdInput) : 3;
+        
+        const intervalInput = await this.getUserInput('Enter monitoring interval ms (default 250): ');
+        const interval = intervalInput ? parseInt(intervalInput) : 250;
+        
+        const slippageInput = await this.getUserInput('Enter max slippage % (default 30): ');
+        const slippage = slippageInput ? parseFloat(slippageInput) : 30;
+        
+        try {
+            // Create DIP strategy if not exists
+            if (!this.dipStrategy) {
+                this.dipStrategy = this.strategyManager.createDIPStrategy('ultra-fast-dip', {
+                    dipThreshold: threshold,
+                    monitoringInterval: interval,
+                    maxSlippage: slippage,
+                    gasPrice: '200',
+                    gasLimit: 1500000,
+                    priorityFee: '100'
+                });
+            } else {
+                this.dipStrategy.updateConfig({
+                    dipThreshold: threshold,
+                    monitoringInterval: interval,
+                    maxSlippage: slippage
+                });
+            }
+            
+            console.log(chalk.yellow('\n🚀 Starting OPUS 4.1 Ultra-Fast DIP Monitoring...'));
+            console.log(chalk.white(`   📊 Monitoring ${tokenAddresses.length} tokens`));
+            console.log(chalk.white(`   💰 Amount per DIP: ${amount} WLD`));
+            console.log(chalk.white(`   📉 DIP Threshold: ${threshold}%`));
+            console.log(chalk.white(`   ⚡ Monitoring Interval: ${interval}ms`));
+            console.log(chalk.white(`   💨 Max Slippage: ${slippage}%`));
+            console.log(chalk.white(`   🔥 Gas Price: 200 gwei`));
+            console.log(chalk.white(`   ⚡ Priority Fee: 100 gwei`));
+            
+            // Start monitoring
+            await this.dipStrategy.startDIPMonitoring(wallet, tokenAddresses, amount);
+            
+            console.log(chalk.green('\n✅ OPUS 4.1 Ultra-Fast DIP Monitoring Started!'));
+            console.log(chalk.yellow('💡 The bot will automatically detect and execute DIP buys with maximum speed.'));
+            
+        } catch (error) {
+            console.log(chalk.red(`❌ Error starting DIP monitoring: ${error.message}`));
+        }
+        
+        await this.getUserInput('\nPress Enter to continue...');
+    }
+
+    // OPUS 4.1: Stop DIP Monitoring
+    async stopOPUS41DIPMonitoring() {
+        if (!this.dipStrategy) {
+            console.log(chalk.yellow('⚠️ No DIP strategy is running'));
+            await this.getUserInput('\nPress Enter to continue...');
+            return;
+        }
+        
+        console.log(chalk.yellow('🛑 Stopping OPUS 4.1 DIP Monitoring...'));
+        this.dipStrategy.stopDIPMonitoring();
+        
+        const stats = this.dipStrategy.getExecutionStats();
+        console.log(chalk.green('\n✅ DIP Monitoring Stopped!'));
+        console.log(chalk.white(`📊 Final Statistics:`));
+        console.log(chalk.white(`   Total Executions: ${stats.totalExecutions}`));
+        console.log(chalk.white(`   Success Rate: ${stats.successRate.toFixed(1)}%`));
+        console.log(chalk.white(`   Average Execution Time: ${stats.averageExecutionTime.toFixed(0)}ms`));
+        
+        await this.getUserInput('\nPress Enter to continue...');
+    }
+
+    // OPUS 4.1: Execute Single DIP Buy
+    async executeOPUS41SingleDIPBuy() {
+        console.clear();
+        console.log(chalk.cyan('⚡ OPUS 4.1 Single DIP Buy Execution'));
+        console.log(chalk.gray('═'.repeat(50)));
+        
+        if (this.wallets.length === 0) {
+            console.log(chalk.red('❌ No wallets available. Please add a wallet first.'));
+            await this.getUserInput('\nPress Enter to continue...');
+            return;
+        }
+        
+        // Select wallet
+        console.log(chalk.white('\n📋 Available Wallets:'));
+        this.wallets.forEach((wallet, index) => {
+            console.log(chalk.white(`${index + 1}. ${wallet.name} (${wallet.address})`));
+        });
+        
+        const walletChoice = await this.getUserInput('\nSelect wallet (number): ');
+        const walletIndex = parseInt(walletChoice) - 1;
+        
+        if (walletIndex < 0 || walletIndex >= this.wallets.length) {
+            console.log(chalk.red('❌ Invalid wallet selection'));
+            await this.getUserInput('\nPress Enter to continue...');
+            return;
+        }
+        
+        const wallet = this.wallets[walletIndex];
+        
+        // Get parameters
+        const tokenAddress = await this.getUserInput('\nEnter token address: ');
+        const amountInput = await this.getUserInput('Enter amount in WLD: ');
+        const amount = parseFloat(amountInput);
+        
+        if (!tokenAddress || isNaN(amount) || amount <= 0) {
+            console.log(chalk.red('❌ Invalid parameters'));
+            await this.getUserInput('\nPress Enter to continue...');
+            return;
+        }
+        
+        try {
+            console.log(chalk.yellow('\n⚡ Executing OPUS 4.1 Ultra-Fast DIP Buy...'));
+            
+            // Create temporary DIP strategy for single execution
+            const tempStrategy = this.strategyManager.createDIPStrategy('temp-dip', {
+                dipThreshold: 0, // Execute immediately
+                maxSlippage: 30
+            });
+            
+            // Create fake DIP info for immediate execution
+            const dipInfo = {
+                tokenAddress,
+                currentPrice: 0,
+                previousPrice: 0,
+                priceChange: -5, // Simulate 5% drop
+                dipPercentage: 5,
+                timestamp: Date.now(),
+                detectionTime: 0
+            };
+            
+            const result = await tempStrategy.executeDIPBuy(wallet, dipInfo, amount);
+            
+            if (result.success) {
+                console.log(chalk.green('\n✅ OPUS 4.1 DIP Buy Executed Successfully!'));
+                console.log(chalk.white(`   📊 TX Hash: ${result.txHash}`));
+                console.log(chalk.white(`   ⚡ Execution Time: ${result.executionTime}ms`));
+                console.log(chalk.white(`   🔥 Gas Price: ${result.gasPrice} gwei`));
+                console.log(chalk.white(`   💰 Amount: ${result.amountIn} WLD`));
+            } else {
+                console.log(chalk.red(`\n❌ DIP Buy Failed: ${result.error}`));
+            }
+            
+        } catch (error) {
+            console.log(chalk.red(`❌ Error executing DIP buy: ${error.message}`));
+        }
+        
+        await this.getUserInput('\nPress Enter to continue...');
+    }
+
+    // OPUS 4.1: Configure DIP Strategy
+    async configureOPUS41DIPStrategy() {
+        console.clear();
+        console.log(chalk.cyan('⚙️  OPUS 4.1 DIP Strategy Configuration'));
+        console.log(chalk.gray('═'.repeat(50)));
+        
+        if (!this.dipStrategy) {
+            console.log(chalk.yellow('⚠️ No DIP strategy initialized. Start monitoring first.'));
+            await this.getUserInput('\nPress Enter to continue...');
+            return;
+        }
+        
+        const currentConfig = this.dipStrategy.config;
+        
+        console.log(chalk.white('\nCurrent Configuration:'));
+        console.log(chalk.white(`   DIP Threshold: ${currentConfig.dipThreshold}%`));
+        console.log(chalk.white(`   Monitoring Interval: ${currentConfig.monitoringInterval}ms`));
+        console.log(chalk.white(`   Max Slippage: ${currentConfig.maxSlippage}%`));
+        console.log(chalk.white(`   Gas Price: ${currentConfig.gasPrice} gwei`));
+        console.log(chalk.white(`   Gas Limit: ${currentConfig.gasLimit.toLocaleString()}`));
+        console.log(chalk.white(`   Priority Fee: ${currentConfig.priorityFee} gwei`));
+        
+        console.log(chalk.yellow('\n💡 These settings are optimized for maximum speed.'));
+        console.log(chalk.yellow('   Lower intervals = faster detection, higher gas = faster execution.'));
+        
+        await this.getUserInput('\nPress Enter to continue...');
+    }
+
+    // OPUS 4.1: Add Token to Monitoring
+    async addTokenToOPUS41Monitoring() {
+        if (!this.dipStrategy) {
+            console.log(chalk.yellow('⚠️ No DIP strategy initialized. Start monitoring first.'));
+            await this.getUserInput('\nPress Enter to continue...');
+            return;
+        }
+        
+        const tokenAddress = await this.getUserInput('\nEnter token address to add: ');
+        
+        if (!tokenAddress) {
+            console.log(chalk.red('❌ Invalid token address'));
+            await this.getUserInput('\nPress Enter to continue...');
+            return;
+        }
+        
+        this.dipStrategy.addTokenToMonitoring(tokenAddress);
+        console.log(chalk.green(`✅ Added ${tokenAddress} to DIP monitoring`));
+        
+        await this.getUserInput('\nPress Enter to continue...');
+    }
+
+    // OPUS 4.1: Remove Token from Monitoring
+    async removeTokenFromOPUS41Monitoring() {
+        if (!this.dipStrategy) {
+            console.log(chalk.yellow('⚠️ No DIP strategy initialized. Start monitoring first.'));
+            await this.getUserInput('\nPress Enter to continue...');
+            return;
+        }
+        
+        const stats = this.dipStrategy.getExecutionStats();
+        console.log(chalk.white('\nCurrently Monitoring:'));
+        stats.monitoringTokens.forEach((token, index) => {
+            console.log(chalk.white(`${index + 1}. ${token}`));
+        });
+        
+        const tokenAddress = await this.getUserInput('\nEnter token address to remove: ');
+        
+        if (!tokenAddress) {
+            console.log(chalk.red('❌ Invalid token address'));
+            await this.getUserInput('\nPress Enter to continue...');
+            return;
+        }
+        
+        this.dipStrategy.removeTokenFromMonitoring(tokenAddress);
+        console.log(chalk.green(`✅ Removed ${tokenAddress} from DIP monitoring`));
+        
+        await this.getUserInput('\nPress Enter to continue...');
+    }
+
+    // OPUS 4.1: Execute Batch DIP
+    async executeOPUS41BatchDIP() {
+        console.clear();
+        console.log(chalk.cyan('🔄 OPUS 4.1 Batch DIP Execution'));
+        console.log(chalk.gray('═'.repeat(50)));
+        
+        if (this.wallets.length === 0) {
+            console.log(chalk.red('❌ No wallets available. Please add a wallet first.'));
+            await this.getUserInput('\nPress Enter to continue...');
+            return;
+        }
+        
+        // Select wallet
+        console.log(chalk.white('\n📋 Available Wallets:'));
+        this.wallets.forEach((wallet, index) => {
+            console.log(chalk.white(`${index + 1}. ${wallet.name} (${wallet.address})`));
+        });
+        
+        const walletChoice = await this.getUserInput('\nSelect wallet (number): ');
+        const walletIndex = parseInt(walletChoice) - 1;
+        
+        if (walletIndex < 0 || walletIndex >= this.wallets.length) {
+            console.log(chalk.red('❌ Invalid wallet selection'));
+            await this.getUserInput('\nPress Enter to continue...');
+            return;
+        }
+        
+        const wallet = this.wallets[walletIndex];
+        
+        // Get parameters
+        const tokenInput = await this.getUserInput('\nEnter token addresses (comma-separated): ');
+        const tokenAddresses = tokenInput.split(',').map(addr => addr.trim()).filter(addr => addr);
+        
+        if (tokenAddresses.length === 0) {
+            console.log(chalk.red('❌ No valid token addresses provided'));
+            await this.getUserInput('\nPress Enter to continue...');
+            return;
+        }
+        
+        const amountInput = await this.getUserInput('Enter amount in WLD per token: ');
+        const amount = parseFloat(amountInput);
+        
+        if (isNaN(amount) || amount <= 0) {
+            console.log(chalk.red('❌ Invalid amount'));
+            await this.getUserInput('\nPress Enter to continue...');
+            return;
+        }
+        
+        try {
+            console.log(chalk.yellow('\n🔄 Executing OPUS 4.1 Batch DIP Buys...'));
+            
+            // Create fake DIP infos for batch execution
+            const dipInfos = tokenAddresses.map(tokenAddress => ({
+                tokenAddress,
+                currentPrice: 0,
+                previousPrice: 0,
+                priceChange: -5,
+                dipPercentage: 5,
+                timestamp: Date.now(),
+                detectionTime: 0
+            }));
+            
+            // Create temporary strategy for batch execution
+            const tempStrategy = this.strategyManager.createDIPStrategy('batch-dip', {
+                dipThreshold: 0,
+                maxSlippage: 30
+            });
+            
+            const result = await tempStrategy.executeBatchDIPBuys(wallet, dipInfos, amount);
+            
+            console.log(chalk.green('\n✅ OPUS 4.1 Batch DIP Execution Completed!'));
+            console.log(chalk.white(`   📊 Total DIPs: ${dipInfos.length}`));
+            console.log(chalk.white(`   ✅ Successful: ${result.successCount}`));
+            console.log(chalk.white(`   ❌ Failed: ${result.failureCount}`));
+            console.log(chalk.white(`   ⚡ Total Time: ${result.totalTime}ms`));
+            console.log(chalk.white(`   ⚡ Average Time: ${result.avgTime.toFixed(0)}ms`));
+            
+        } catch (error) {
+            console.log(chalk.red(`❌ Error executing batch DIP: ${error.message}`));
+        }
+        
+        await this.getUserInput('\nPress Enter to continue...');
+    }
+
+    // OPUS 4.1: Save Strategy State
+    async saveOPUS41StrategyState() {
+        if (!this.dipStrategy) {
+            console.log(chalk.yellow('⚠️ No DIP strategy to save'));
+            await this.getUserInput('\nPress Enter to continue...');
+            return;
+        }
+        
+        const filename = await this.getUserInput('\nEnter filename (default: dip-strategy-state.json): ');
+        const filepath = filename || 'dip-strategy-state.json';
+        
+        try {
+            this.dipStrategy.saveState(filepath);
+            console.log(chalk.green(`✅ Strategy state saved to ${filepath}`));
+        } catch (error) {
+            console.log(chalk.red(`❌ Error saving strategy state: ${error.message}`));
+        }
+        
+        await this.getUserInput('\nPress Enter to continue...');
+    }
+
+    // OPUS 4.1: Load Strategy State
+    async loadOPUS41StrategyState() {
+        const filename = await this.getUserInput('\nEnter filename (default: dip-strategy-state.json): ');
+        const filepath = filename || 'dip-strategy-state.json';
+        
+        try {
+            if (!this.dipStrategy) {
+                this.dipStrategy = this.strategyManager.createDIPStrategy('ultra-fast-dip');
+            }
+            
+            const success = this.dipStrategy.loadState(filepath);
+            
+            if (success) {
+                console.log(chalk.green(`✅ Strategy state loaded from ${filepath}`));
+            } else {
+                console.log(chalk.yellow(`⚠️ No existing state file found at ${filepath}`));
+            }
+        } catch (error) {
+            console.log(chalk.red(`❌ Error loading strategy state: ${error.message}`));
+        }
         
         await this.getUserInput('\nPress Enter to continue...');
     }
