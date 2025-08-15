@@ -6,7 +6,7 @@
 
 ### One-Line Install (Recommended)
 ```bash
-curl -fsSL https://raw.githubusercontent.com/notevayasconadan/eva/main/install-algoritmit-ubuntu-root.sh | sudo bash
+curl -fsSL https://raw.githubusercontent.com/notevayasconadan/eva/cursor/check-repository-branches-for-latest-code-05c1/install-algoritmit-ubuntu-root.sh | sudo bash
 ```
 
 ### Manual Installation

@@ -130,19 +130,19 @@ cat > "$RELEASE_DIR/INSTALL_UBUNTU_SERVER.md" << 'EOF'
 
 ### For Root Users:
 ```bash
-curl -fsSL https://raw.githubusercontent.com/notevayasconadan/eva/main/install-algoritmit-ubuntu-root.sh | sudo bash
+curl -fsSL https://raw.githubusercontent.com/notevayasconadan/eva/cursor/check-repository-branches-for-latest-code-05c1/install-algoritmit-ubuntu-root.sh | sudo bash
 ```
 
 ### For Non-Root Users:
 ```bash
-curl -fsSL https://raw.githubusercontent.com/notevayasconadan/eva/main/install-algoritmit-ubuntu-novice.sh | bash
+curl -fsSL https://raw.githubusercontent.com/notevayasconadan/eva/cursor/check-repository-branches-for-latest-code-05c1/install-algoritmit-ubuntu-novice.sh | bash
 ```
 
 ## Manual Installation
 
 1. **Download the package:**
    ```bash
-   wget https://github.com/notevayasconadan/eva/releases/download/v4.0/algoritmit-ubuntu-server-v4.0-novice.tar.gz
+   wget https://github.com/notevayasconadan/eva/raw/cursor/check-repository-branches-for-latest-code-05c1/releases/algoritmit-ubuntu-server-v4.0-novice.tar.gz
    ```
 
 2. **Extract the package:**
@@ -211,12 +211,12 @@ cat > "$RELEASE_DIR/RELEASE_NOTES_v$VERSION.md" << EOF
 
 **Root Users:**
 \`\`\`bash
-curl -fsSL https://raw.githubusercontent.com/notevayasconadan/eva/main/install-algoritmit-ubuntu-root.sh | sudo bash
+curl -fsSL https://raw.githubusercontent.com/notevayasconadan/eva/cursor/check-repository-branches-for-latest-code-05c1/install-algoritmit-ubuntu-root.sh | sudo bash
 \`\`\`
 
 **Non-Root Users:**
 \`\`\`bash
-curl -fsSL https://raw.githubusercontent.com/notevayasconadan/eva/main/install-algoritmit-ubuntu-novice.sh | bash
+curl -fsSL https://raw.githubusercontent.com/notevayasconadan/eva/cursor/check-repository-branches-for-latest-code-05c1/install-algoritmit-ubuntu-novice.sh | bash
 \`\`\`
 
 ### Manual Installation
