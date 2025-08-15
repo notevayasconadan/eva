@@ -11,7 +11,7 @@ const AdvancedTradingEngine = require('./trading-engine');
 const TokenDiscoveryService = require('./token-discovery');
 const TelegramNotifications = require('./telegram-notifications');
 const { UltraFastStrategyManager } = require('./algoritmit-strategy');
-const UltraFastDIPStrategy = require('./ultra-fast-dip-strategy');
+const { UltraFastDIPStrategy, UltraFastStrategyManager: UltraFastDIPStrategyManager } = require('./ultra-fast-dip-strategy');
 require('dotenv').config();
 
 class WorldchainTradingBot {
@@ -34,6 +34,7 @@ class WorldchainTradingBot {
         
         // OPUS 4.1: Initialize ultra-fast DIP strategy manager
         this.strategyManager = new UltraFastStrategyManager(this.tradingEngine);
+        this.ultraFastStrategyManager = new UltraFastDIPStrategyManager(this.tradingEngine);
         this.dipStrategy = null;
         
         // Initialize ultra-fast settings
@@ -3920,7 +3921,8 @@ class WorldchainTradingBot {
         console.log(chalk.cyan('17. ⛽ Gas Estimation'));
         console.log(chalk.cyan('18. 🌐 RPC Management'));
         console.log(chalk.cyan('19. 🚀 OPUS 4.1 Ultra-Fast DIP Trading'));
-        console.log(chalk.red('20. 🚪 Exit'));
+        console.log(chalk.cyan('20. 🚀 Ultra-Fast DIP Strategy'));
+        console.log(chalk.red('21. 🚪 Exit'));
         console.log(chalk.gray('─'.repeat(30)));
     }
 
@@ -5979,6 +5981,9 @@ class WorldchainTradingBot {
                     await this.opus41DIPTradingMenu();
                     break;
                 case '20':
+                    await this.ultraFastDIPStrategyMenu();
+                    break;
+                case '21':
                     console.log(chalk.green('\n👋 Thank you for using WorldChain Trading Bot!'));
                     console.log(chalk.yellow('💡 Remember to keep your private keys secure!'));
                     
@@ -10608,6 +10613,632 @@ class WorldchainTradingBot {
             }
         } catch (error) {
             console.log(chalk.red(`❌ Error loading strategy state: ${error.message}`));
+        }
+        
+        await this.getUserInput('\nPress Enter to continue...');
+    }
+
+    // 🚀 OPUS 4.1: Ultra-Fast DIP Strategy Menu
+    async ultraFastDIPStrategyMenu() {
+        while (true) {
+            await this.displayHeader();
+            console.log(chalk.white('\n🚀 OPUS 4.1 ULTRA-FAST DIP STRATEGY'));
+            console.log(chalk.gray('─'.repeat(50)));
+            
+            // Display current status
+            const strategies = this.ultraFastStrategyManager.getStrategiesStatus();
+            const activeStrategies = Object.values(strategies).filter(s => s.isActive);
+            
+            console.log(chalk.green(`📊 Active Ultra-Fast Strategies: ${activeStrategies.length}`));
+            console.log(chalk.cyan(`⚡ Ultra-Fast DIP Strategy Manager: ${this.ultraFastStrategyManager ? '🟢 READY' : '🔴 NOT INITIALIZED'}`));
+            console.log(chalk.gray('─'.repeat(50)));
+            
+            console.log(chalk.cyan('1. 🚀 Create Ultra-Fast DIP Strategy'));
+            console.log(chalk.cyan('2. ▶️  Start Ultra-Fast DIP Monitoring'));
+            console.log(chalk.cyan('3. ⏹️  Stop Ultra-Fast DIP Monitoring'));
+            console.log(chalk.cyan('4. ⚡ Execute Instant DIP Buy'));
+            console.log(chalk.cyan('5. 📊 View Strategy Statistics'));
+            console.log(chalk.cyan('6. ⚙️  Configure Ultra-Fast Settings'));
+            console.log(chalk.cyan('7. 🔄 Batch Ultra-Fast DIP Execution'));
+            console.log(chalk.cyan('8. 📈 View Performance Metrics'));
+            console.log(chalk.red('9. ⬅️  Back to Main Menu'));
+            
+            const choice = await this.getUserInput('\nSelect option: ');
+            
+            switch (choice) {
+                case '1':
+                    await this.createUltraFastDIPStrategy();
+                    break;
+                case '2':
+                    await this.startUltraFastDIPMonitoring();
+                    break;
+                case '3':
+                    await this.stopUltraFastDIPMonitoring();
+                    break;
+                case '4':
+                    await this.executeInstantDIPBuy();
+                    break;
+                case '5':
+                    await this.viewUltraFastStrategyStats();
+                    break;
+                case '6':
+                    await this.configureUltraFastSettings();
+                    break;
+                case '7':
+                    await this.executeBatchUltraFastDIP();
+                    break;
+                case '8':
+                    await this.viewUltraFastPerformanceMetrics();
+                    break;
+                case '9':
+                    return;
+                default:
+                    console.log(chalk.red('❌ Invalid option'));
+                    await this.sleep(1500);
+            }
+        }
+    }
+
+    // Create Ultra-Fast DIP Strategy
+    async createUltraFastDIPStrategy() {
+        await this.displayHeader();
+        console.log(chalk.white('\n🚀 CREATE ULTRA-FAST DIP STRATEGY'));
+        console.log(chalk.gray('─'.repeat(40)));
+        
+        const strategyId = await this.getUserInput('Enter strategy ID: ');
+        if (!strategyId) {
+            console.log(chalk.red('❌ Strategy ID is required'));
+            await this.getUserInput('\nPress Enter to continue...');
+            return;
+        }
+        
+        console.log(chalk.yellow('\n⚙️ Ultra-Fast Configuration Options:'));
+        console.log(chalk.white('1. Ultra-Aggressive (1% dip, 10ms monitoring, 50% slippage)'));
+        console.log(chalk.white('2. Aggressive (2% dip, 25ms monitoring, 30% slippage)'));
+        console.log(chalk.white('3. Balanced (3% dip, 50ms monitoring, 20% slippage)'));
+        console.log(chalk.white('4. Custom Configuration'));
+        
+        const configChoice = await this.getUserInput('\nSelect configuration: ');
+        
+        let config = {};
+        
+        switch (configChoice) {
+            case '1':
+                config = {
+                    dipThreshold: 1,
+                    monitoringInterval: 10,
+                    maxSlippage: 50,
+                    gasPrice: '2000',
+                    gasLimit: 5000000,
+                    priorityFee: '1000',
+                    instantExecution: true,
+                    skipValidation: true,
+                    parallelExecution: true
+                };
+                break;
+            case '2':
+                config = {
+                    dipThreshold: 2,
+                    monitoringInterval: 25,
+                    maxSlippage: 30,
+                    gasPrice: '1500',
+                    gasLimit: 3000000,
+                    priorityFee: '750',
+                    instantExecution: true,
+                    skipValidation: true,
+                    parallelExecution: true
+                };
+                break;
+            case '3':
+                config = {
+                    dipThreshold: 3,
+                    monitoringInterval: 50,
+                    maxSlippage: 20,
+                    gasPrice: '1000',
+                    gasLimit: 2000000,
+                    priorityFee: '500',
+                    instantExecution: true,
+                    skipValidation: false,
+                    parallelExecution: true
+                };
+                break;
+            case '4':
+                config = await this.getCustomUltraFastConfig();
+                break;
+            default:
+                console.log(chalk.red('❌ Invalid configuration choice'));
+                await this.getUserInput('\nPress Enter to continue...');
+                return;
+        }
+        
+        try {
+            const strategy = this.ultraFastStrategyManager.createUltraFastDIPStrategy(strategyId, config);
+            console.log(chalk.green(`\n✅ Ultra-Fast DIP Strategy "${strategyId}" created successfully!`));
+            console.log(chalk.white(`   ⚡ Dip Threshold: ${config.dipThreshold}%`));
+            console.log(chalk.white(`   🔄 Monitoring Interval: ${config.monitoringInterval}ms`));
+            console.log(chalk.white(`   💨 Max Slippage: ${config.maxSlippage}%`));
+            console.log(chalk.white(`   ⛽ Gas Price: ${config.gasPrice} gwei`));
+        } catch (error) {
+            console.log(chalk.red(`❌ Error creating strategy: ${error.message}`));
+        }
+        
+        await this.getUserInput('\nPress Enter to continue...');
+    }
+
+    // Get Custom Ultra-Fast Configuration
+    async getCustomUltraFastConfig() {
+        console.log(chalk.yellow('\n⚙️ Custom Ultra-Fast Configuration:'));
+        
+        const dipThreshold = parseFloat(await this.getUserInput('Dip threshold (%): ')) || 2;
+        const monitoringInterval = parseInt(await this.getUserInput('Monitoring interval (ms): ')) || 25;
+        const maxSlippage = parseFloat(await this.getUserInput('Max slippage (%): ')) || 30;
+        const gasPrice = await this.getUserInput('Gas price (gwei): ') || '1500';
+        const gasLimit = parseInt(await this.getUserInput('Gas limit: ')) || 3000000;
+        const priorityFee = await this.getUserInput('Priority fee (gwei): ') || '750';
+        
+        return {
+            dipThreshold,
+            monitoringInterval,
+            maxSlippage,
+            gasPrice,
+            gasLimit,
+            priorityFee,
+            instantExecution: true,
+            skipValidation: true,
+            parallelExecution: true
+        };
+    }
+
+    // Start Ultra-Fast DIP Monitoring
+    async startUltraFastDIPMonitoring() {
+        await this.displayHeader();
+        console.log(chalk.white('\n▶️ START ULTRA-FAST DIP MONITORING'));
+        console.log(chalk.gray('─'.repeat(40)));
+        
+        // Select wallet
+        if (this.wallets.length === 0) {
+            console.log(chalk.red('❌ No wallets available. Please add a wallet first.'));
+            await this.getUserInput('\nPress Enter to continue...');
+            return;
+        }
+        
+        console.log(chalk.white('Available wallets:'));
+        this.wallets.forEach((wallet, index) => {
+            console.log(chalk.cyan(`${index + 1}. ${wallet.name} (${wallet.address})`));
+        });
+        
+        const walletChoice = await this.getUserInput('\nSelect wallet (number): ');
+        const walletIndex = parseInt(walletChoice) - 1;
+        
+        if (walletIndex < 0 || walletIndex >= this.wallets.length) {
+            console.log(chalk.red('❌ Invalid wallet selection'));
+            await this.getUserInput('\nPress Enter to continue...');
+            return;
+        }
+        
+        const wallet = this.wallets[walletIndex];
+        
+        // Select strategy
+        const strategies = this.ultraFastStrategyManager.getStrategiesStatus();
+        const strategyIds = Object.keys(strategies);
+        
+        if (strategyIds.length === 0) {
+            console.log(chalk.red('❌ No strategies available. Please create a strategy first.'));
+            await this.getUserInput('\nPress Enter to continue...');
+            return;
+        }
+        
+        console.log(chalk.white('\nAvailable strategies:'));
+        strategyIds.forEach((strategyId, index) => {
+            const strategy = strategies[strategyId];
+            console.log(chalk.cyan(`${index + 1}. ${strategyId} (${strategy.isActive ? '🟢 ACTIVE' : '🔴 INACTIVE'})`));
+        });
+        
+        const strategyChoice = await this.getUserInput('\nSelect strategy (number): ');
+        const strategyIndex = parseInt(strategyChoice) - 1;
+        
+        if (strategyIndex < 0 || strategyIndex >= strategyIds.length) {
+            console.log(chalk.red('❌ Invalid strategy selection'));
+            await this.getUserInput('\nPress Enter to continue...');
+            return;
+        }
+        
+        const strategyId = strategyIds[strategyIndex];
+        
+        // Get token addresses
+        console.log(chalk.white('\nEnter token addresses to monitor (comma-separated):'));
+        const tokenInput = await this.getUserInput('Token addresses: ');
+        const tokenAddresses = tokenInput.split(',').map(addr => addr.trim()).filter(addr => addr);
+        
+        if (tokenAddresses.length === 0) {
+            console.log(chalk.red('❌ No valid token addresses provided'));
+            await this.getUserInput('\nPress Enter to continue...');
+            return;
+        }
+        
+        // Get amount
+        const amountInput = await this.getUserInput('\nEnter amount in WLD per DIP: ');
+        const amount = parseFloat(amountInput);
+        
+        if (isNaN(amount) || amount <= 0) {
+            console.log(chalk.red('❌ Invalid amount'));
+            await this.getUserInput('\nPress Enter to continue...');
+            return;
+        }
+        
+        try {
+            console.log(chalk.yellow('\n🚀 Starting Ultra-Fast DIP Monitoring...'));
+            await this.ultraFastStrategyManager.startUltraFastStrategy(strategyId, wallet, tokenAddresses, amount);
+            console.log(chalk.green('\n✅ Ultra-Fast DIP Monitoring started successfully!'));
+            console.log(chalk.white(`   📊 Strategy: ${strategyId}`));
+            console.log(chalk.white(`   💼 Wallet: ${wallet.name}`));
+            console.log(chalk.white(`   🪙 Tokens: ${tokenAddresses.length}`));
+            console.log(chalk.white(`   💰 Amount: ${amount} WLD per DIP`));
+        } catch (error) {
+            console.log(chalk.red(`❌ Error starting monitoring: ${error.message}`));
+        }
+        
+        await this.getUserInput('\nPress Enter to continue...');
+    }
+
+    // Stop Ultra-Fast DIP Monitoring
+    async stopUltraFastDIPMonitoring() {
+        await this.displayHeader();
+        console.log(chalk.white('\n⏹️ STOP ULTRA-FAST DIP MONITORING'));
+        console.log(chalk.gray('─'.repeat(40)));
+        
+        const strategies = this.ultraFastStrategyManager.getStrategiesStatus();
+        const activeStrategies = Object.entries(strategies).filter(([id, strategy]) => strategy.isActive);
+        
+        if (activeStrategies.length === 0) {
+            console.log(chalk.yellow('⚠️ No active ultra-fast strategies to stop'));
+            await this.getUserInput('\nPress Enter to continue...');
+            return;
+        }
+        
+        console.log(chalk.white('Active strategies:'));
+        activeStrategies.forEach(([strategyId, strategy], index) => {
+            console.log(chalk.cyan(`${index + 1}. ${strategyId}`));
+        });
+        
+        const choice = await this.getUserInput('\nSelect strategy to stop (number) or "all" to stop all: ');
+        
+        if (choice.toLowerCase() === 'all') {
+            this.ultraFastStrategyManager.stopAllStrategies();
+            console.log(chalk.green('\n✅ All ultra-fast strategies stopped'));
+        } else {
+            const strategyIndex = parseInt(choice) - 1;
+            if (strategyIndex >= 0 && strategyIndex < activeStrategies.length) {
+                const strategyId = activeStrategies[strategyIndex][0];
+                this.ultraFastStrategyManager.stopStrategy(strategyId);
+                console.log(chalk.green(`\n✅ Ultra-fast strategy "${strategyId}" stopped`));
+            } else {
+                console.log(chalk.red('❌ Invalid strategy selection'));
+            }
+        }
+        
+        await this.getUserInput('\nPress Enter to continue...');
+    }
+
+    // Execute Instant DIP Buy
+    async executeInstantDIPBuy() {
+        await this.displayHeader();
+        console.log(chalk.white('\n⚡ EXECUTE INSTANT DIP BUY'));
+        console.log(chalk.gray('─'.repeat(40)));
+        
+        // Select wallet
+        if (this.wallets.length === 0) {
+            console.log(chalk.red('❌ No wallets available. Please add a wallet first.'));
+            await this.getUserInput('\nPress Enter to continue...');
+            return;
+        }
+        
+        console.log(chalk.white('Available wallets:'));
+        this.wallets.forEach((wallet, index) => {
+            console.log(chalk.cyan(`${index + 1}. ${wallet.name} (${wallet.address})`));
+        });
+        
+        const walletChoice = await this.getUserInput('\nSelect wallet (number): ');
+        const walletIndex = parseInt(walletChoice) - 1;
+        
+        if (walletIndex < 0 || walletIndex >= this.wallets.length) {
+            console.log(chalk.red('❌ Invalid wallet selection'));
+            await this.getUserInput('\nPress Enter to continue...');
+            return;
+        }
+        
+        const wallet = this.wallets[walletIndex];
+        
+        // Get token address
+        const tokenAddress = await this.getUserInput('\nEnter token address: ');
+        if (!tokenAddress) {
+            console.log(chalk.red('❌ Token address is required'));
+            await this.getUserInput('\nPress Enter to continue...');
+            return;
+        }
+        
+        // Get amount
+        const amountInput = await this.getUserInput('\nEnter amount in WLD: ');
+        const amount = parseFloat(amountInput);
+        
+        if (isNaN(amount) || amount <= 0) {
+            console.log(chalk.red('❌ Invalid amount'));
+            await this.getUserInput('\nPress Enter to continue...');
+            return;
+        }
+        
+        try {
+            console.log(chalk.yellow('\n⚡ Executing Instant DIP Buy...'));
+            
+            // Get any active strategy for execution
+            const strategies = this.ultraFastStrategyManager.getStrategiesStatus();
+            const strategyIds = Object.keys(strategies);
+            
+            if (strategyIds.length === 0) {
+                console.log(chalk.red('❌ No strategies available. Please create a strategy first.'));
+                await this.getUserInput('\nPress Enter to continue...');
+                return;
+            }
+            
+            const strategyId = strategyIds[0]; // Use first available strategy
+            const strategy = this.ultraFastStrategyManager.getStrategy(strategyId);
+            
+            const result = await strategy.executeInstantDIP(wallet, tokenAddress, amount);
+            
+            if (result.success) {
+                console.log(chalk.green('\n✅ Instant DIP Buy Executed Successfully!'));
+                console.log(chalk.white(`   📊 TX Hash: ${result.txHash}`));
+                console.log(chalk.white(`   ⚡ Execution Time: ${result.totalTime}ms`));
+                console.log(chalk.white(`   🚀 Speed: ${result.opusSpeed}`));
+                console.log(chalk.white(`   ⛽ Gas Price: ${result.gasPrice} gwei`));
+            } else {
+                console.log(chalk.red(`\n❌ Instant DIP Buy Failed: ${result.error}`));
+            }
+        } catch (error) {
+            console.log(chalk.red(`❌ Error executing instant DIP: ${error.message}`));
+        }
+        
+        await this.getUserInput('\nPress Enter to continue...');
+    }
+
+    // View Ultra-Fast Strategy Statistics
+    async viewUltraFastStrategyStats() {
+        await this.displayHeader();
+        console.log(chalk.white('\n📊 ULTRA-FAST STRATEGY STATISTICS'));
+        console.log(chalk.gray('─'.repeat(40)));
+        
+        const strategies = this.ultraFastStrategyManager.getStrategiesStatus();
+        
+        if (Object.keys(strategies).length === 0) {
+            console.log(chalk.yellow('⚠️ No ultra-fast strategies created yet'));
+            await this.getUserInput('\nPress Enter to continue...');
+            return;
+        }
+        
+        Object.entries(strategies).forEach(([strategyId, strategy]) => {
+            console.log(chalk.cyan(`\n📊 Strategy: ${strategyId}`));
+            console.log(chalk.white(`   Status: ${strategy.isActive ? '🟢 ACTIVE' : '🔴 INACTIVE'}`));
+            console.log(chalk.white(`   Type: ${strategy.type}`));
+            
+            const stats = strategy.stats;
+            console.log(chalk.white(`   Total Executions: ${stats.totalExecutions}`));
+            console.log(chalk.white(`   Successful: ${stats.successfulExecutions}`));
+            console.log(chalk.white(`   Success Rate: ${stats.successRate.toFixed(2)}%`));
+            console.log(chalk.white(`   Total Volume: ${stats.totalVolume} WLD`));
+            console.log(chalk.white(`   Average Time: ${stats.averageExecutionTime.toFixed(0)}ms`));
+            console.log(chalk.white(`   Fastest: ${stats.fastestExecution === Infinity ? 'N/A' : stats.fastestExecution + 'ms'}`));
+            console.log(chalk.white(`   Slowest: ${stats.slowestExecution}ms`));
+            
+            if (stats.monitoringTokens.length > 0) {
+                console.log(chalk.white(`   Monitoring: ${stats.monitoringTokens.length} tokens`));
+            }
+        });
+        
+        await this.getUserInput('\nPress Enter to continue...');
+    }
+
+    // Configure Ultra-Fast Settings
+    async configureUltraFastSettings() {
+        await this.displayHeader();
+        console.log(chalk.white('\n⚙️ CONFIGURE ULTRA-FAST SETTINGS'));
+        console.log(chalk.gray('─'.repeat(40)));
+        
+        const strategies = this.ultraFastStrategyManager.getStrategiesStatus();
+        const strategyIds = Object.keys(strategies);
+        
+        if (strategyIds.length === 0) {
+            console.log(chalk.red('❌ No strategies available. Please create a strategy first.'));
+            await this.getUserInput('\nPress Enter to continue...');
+            return;
+        }
+        
+        console.log(chalk.white('Available strategies:'));
+        strategyIds.forEach((strategyId, index) => {
+            console.log(chalk.cyan(`${index + 1}. ${strategyId}`));
+        });
+        
+        const strategyChoice = await this.getUserInput('\nSelect strategy (number): ');
+        const strategyIndex = parseInt(strategyChoice) - 1;
+        
+        if (strategyIndex < 0 || strategyIndex >= strategyIds.length) {
+            console.log(chalk.red('❌ Invalid strategy selection'));
+            await this.getUserInput('\nPress Enter to continue...');
+            return;
+        }
+        
+        const strategyId = strategyIds[strategyIndex];
+        const strategy = this.ultraFastStrategyManager.getStrategy(strategyId);
+        const currentConfig = strategy.config;
+        
+        console.log(chalk.yellow('\nCurrent configuration:'));
+        console.log(chalk.white(`   Dip Threshold: ${currentConfig.dipThreshold}%`));
+        console.log(chalk.white(`   Monitoring Interval: ${currentConfig.monitoringInterval}ms`));
+        console.log(chalk.white(`   Max Slippage: ${currentConfig.maxSlippage}%`));
+        console.log(chalk.white(`   Gas Price: ${currentConfig.gasPrice} gwei`));
+        console.log(chalk.white(`   Gas Limit: ${currentConfig.gasLimit}`));
+        console.log(chalk.white(`   Priority Fee: ${currentConfig.priorityFee} gwei`));
+        
+        console.log(chalk.yellow('\nNew configuration:'));
+        const newConfig = await this.getCustomUltraFastConfig();
+        
+        try {
+            strategy.updateConfig(newConfig);
+            console.log(chalk.green('\n✅ Ultra-fast configuration updated successfully!'));
+        } catch (error) {
+            console.log(chalk.red(`❌ Error updating configuration: ${error.message}`));
+        }
+        
+        await this.getUserInput('\nPress Enter to continue...');
+    }
+
+    // Execute Batch Ultra-Fast DIP
+    async executeBatchUltraFastDIP() {
+        await this.displayHeader();
+        console.log(chalk.white('\n🔄 EXECUTE BATCH ULTRA-FAST DIP'));
+        console.log(chalk.gray('─'.repeat(40)));
+        
+        // Select wallet
+        if (this.wallets.length === 0) {
+            console.log(chalk.red('❌ No wallets available. Please add a wallet first.'));
+            await this.getUserInput('\nPress Enter to continue...');
+            return;
+        }
+        
+        console.log(chalk.white('Available wallets:'));
+        this.wallets.forEach((wallet, index) => {
+            console.log(chalk.cyan(`${index + 1}. ${wallet.name} (${wallet.address})`));
+        });
+        
+        const walletChoice = await this.getUserInput('\nSelect wallet (number): ');
+        const walletIndex = parseInt(walletChoice) - 1;
+        
+        if (walletIndex < 0 || walletIndex >= this.wallets.length) {
+            console.log(chalk.red('❌ Invalid wallet selection'));
+            await this.getUserInput('\nPress Enter to continue...');
+            return;
+        }
+        
+        const wallet = this.wallets[walletIndex];
+        
+        // Get token addresses
+        console.log(chalk.white('\nEnter token addresses (comma-separated):'));
+        const tokenInput = await this.getUserInput('Token addresses: ');
+        const tokenAddresses = tokenInput.split(',').map(addr => addr.trim()).filter(addr => addr);
+        
+        if (tokenAddresses.length === 0) {
+            console.log(chalk.red('❌ No valid token addresses provided'));
+            await this.getUserInput('\nPress Enter to continue...');
+            return;
+        }
+        
+        // Get amount
+        const amountInput = await this.getUserInput('\nEnter amount in WLD per token: ');
+        const amount = parseFloat(amountInput);
+        
+        if (isNaN(amount) || amount <= 0) {
+            console.log(chalk.red('❌ Invalid amount'));
+            await this.getUserInput('\nPress Enter to continue...');
+            return;
+        }
+        
+        try {
+            console.log(chalk.yellow('\n🔄 Executing Batch Ultra-Fast DIP Buys...'));
+            
+            // Get any active strategy for execution
+            const strategies = this.ultraFastStrategyManager.getStrategiesStatus();
+            const strategyIds = Object.keys(strategies);
+            
+            if (strategyIds.length === 0) {
+                console.log(chalk.red('❌ No strategies available. Please create a strategy first.'));
+                await this.getUserInput('\nPress Enter to continue...');
+                return;
+            }
+            
+            const strategyId = strategyIds[0]; // Use first available strategy
+            const strategy = this.ultraFastStrategyManager.getStrategy(strategyId);
+            
+            // Create fake DIP infos for batch execution
+            const dipInfos = tokenAddresses.map(tokenAddress => ({
+                tokenAddress,
+                currentPrice: 0,
+                previousPrice: 0,
+                priceChange: -5,
+                dipPercentage: 5,
+                timestamp: Date.now(),
+                detectionTime: 0
+            }));
+            
+            const result = await strategy.executeBatchDIPBuys(wallet, dipInfos, amount);
+            
+            console.log(chalk.green('\n✅ Batch Ultra-Fast DIP Execution Completed!'));
+            console.log(chalk.white(`   📊 Total DIPs: ${dipInfos.length}`));
+            console.log(chalk.white(`   ✅ Successful: ${result.successCount}`));
+            console.log(chalk.white(`   ❌ Failed: ${result.failureCount}`));
+            console.log(chalk.white(`   ⚡ Total Time: ${result.totalTime}ms`));
+            console.log(chalk.white(`   ⚡ Average Time: ${(result.totalTime / dipInfos.length).toFixed(0)}ms`));
+        } catch (error) {
+            console.log(chalk.red(`❌ Error executing batch DIP: ${error.message}`));
+        }
+        
+        await this.getUserInput('\nPress Enter to continue...');
+    }
+
+    // View Ultra-Fast Performance Metrics
+    async viewUltraFastPerformanceMetrics() {
+        await this.displayHeader();
+        console.log(chalk.white('\n📈 ULTRA-FAST PERFORMANCE METRICS'));
+        console.log(chalk.gray('─'.repeat(40)));
+        
+        const strategies = this.ultraFastStrategyManager.getStrategiesStatus();
+        
+        if (Object.keys(strategies).length === 0) {
+            console.log(chalk.yellow('⚠️ No ultra-fast strategies created yet'));
+            await this.getUserInput('\nPress Enter to continue...');
+            return;
+        }
+        
+        console.log(chalk.cyan('🚀 OPUS 4.1 Ultra-Fast Performance Summary:'));
+        console.log(chalk.gray('─'.repeat(40)));
+        
+        let totalExecutions = 0;
+        let totalSuccessful = 0;
+        let totalVolume = 0;
+        let fastestExecution = Infinity;
+        let slowestExecution = 0;
+        let totalExecutionTime = 0;
+        
+        Object.entries(strategies).forEach(([strategyId, strategy]) => {
+            const stats = strategy.stats;
+            totalExecutions += stats.totalExecutions;
+            totalSuccessful += stats.successfulExecutions;
+            totalVolume += stats.totalVolume;
+            totalExecutionTime += stats.averageExecutionTime * stats.totalExecutions;
+            
+            if (stats.fastestExecution < fastestExecution) {
+                fastestExecution = stats.fastestExecution;
+            }
+            if (stats.slowestExecution > slowestExecution) {
+                slowestExecution = stats.slowestExecution;
+            }
+        });
+        
+        const overallSuccessRate = totalExecutions > 0 ? (totalSuccessful / totalExecutions) * 100 : 0;
+        const averageExecutionTime = totalExecutions > 0 ? totalExecutionTime / totalExecutions : 0;
+        
+        console.log(chalk.white(`📊 Total Executions: ${totalExecutions}`));
+        console.log(chalk.white(`✅ Successful: ${totalSuccessful}`));
+        console.log(chalk.white(`📈 Success Rate: ${overallSuccessRate.toFixed(2)}%`));
+        console.log(chalk.white(`💰 Total Volume: ${totalVolume} WLD`));
+        console.log(chalk.white(`⚡ Average Execution Time: ${averageExecutionTime.toFixed(0)}ms`));
+        console.log(chalk.white(`🚀 Fastest Execution: ${fastestExecution === Infinity ? 'N/A' : fastestExecution + 'ms'}`));
+        console.log(chalk.white(`🐌 Slowest Execution: ${slowestExecution}ms`));
+        
+        if (fastestExecution < 100) {
+            console.log(chalk.green('🎯 ULTRA-FAST PERFORMANCE ACHIEVED!'));
+        } else if (fastestExecution < 200) {
+            console.log(chalk.yellow('⚡ FAST PERFORMANCE ACHIEVED!'));
+        } else {
+            console.log(chalk.red('⚠️ PERFORMANCE NEEDS OPTIMIZATION'));
         }
         
         await this.getUserInput('\nPress Enter to continue...');
