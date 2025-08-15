@@ -6,10 +6,10 @@ class UltraFastDIPStrategy {
         this.config = config;
         
         // Ultra-fast DIP settings
-        this.DIP_THRESHOLD = 5; // 5% price drop triggers DIP buy
-        this.MAX_SLIPPAGE = 15; // 15% slippage for ultra-fast execution
-        this.GAS_PRICE = ethers.parseUnits('100', 'gwei'); // Ultra-high gas for priority
-        this.GAS_LIMIT = 800000; // High gas limit for complex transactions
+        this.DIP_THRESHOLD = 3; // 3% price drop triggers DIP buy (reduced from 5)
+        this.MAX_SLIPPAGE = 25; // 25% slippage for ultra-fast execution (increased from 15)
+        this.GAS_PRICE = ethers.parseUnits('500', 'gwei'); // Ultra-high gas for priority (increased from 100)
+        this.GAS_LIMIT = 2000000; // High gas limit for complex transactions (increased from 800000)
         
         // Price monitoring
         this.priceHistory = new Map();
@@ -22,9 +22,9 @@ class UltraFastDIPStrategy {
         this.totalTrades = 0;
         
         // Ultra-fast execution settings
-        this.BATCH_SIZE = 10; // Execute up to 10 trades simultaneously
-        this.RETRY_ATTEMPTS = 1; // Minimal retries for speed
-        this.CONFIRMATION_TIMEOUT = 5000; // 5 second timeout
+        this.BATCH_SIZE = 20; // Execute up to 20 trades simultaneously (increased from 10)
+        this.RETRY_ATTEMPTS = 0; // No retries for maximum speed (reduced from 1)
+        this.CONFIRMATION_TIMEOUT = 2000; // 2 second timeout (reduced from 5000)
     }
 
     // Ultra-fast DIP detection

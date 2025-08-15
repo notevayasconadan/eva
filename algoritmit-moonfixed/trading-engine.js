@@ -47,9 +47,9 @@ class AdvancedTradingEngine {
         this.lastPriceUpdate = new Map();
         
         // OPUS 4.1: Ultra-high gas settings for maximum priority
-        this.ULTRA_FAST_GAS_PRICE = ethers.parseUnits('200', 'gwei'); // Ultra-high priority
-        this.ULTRA_FAST_GAS_LIMIT = 1500000; // High gas limit for complex transactions
-        this.ULTRA_FAST_PRIORITY_FEE = ethers.parseUnits('100', 'gwei'); // Maximum priority fee
+        this.ULTRA_FAST_GAS_PRICE = ethers.parseUnits('500', 'gwei'); // Ultra-high priority (increased from 200)
+        this.ULTRA_FAST_GAS_LIMIT = 2000000; // High gas limit for complex transactions (increased from 1500000)
+        this.ULTRA_FAST_PRIORITY_FEE = ethers.parseUnits('300', 'gwei'); // Maximum priority fee (increased from 100)
         
         // OPUS 4.1: Pre-allocated wallet cache for zero-delay execution
         this.walletCache = new Map();
@@ -318,7 +318,7 @@ class AdvancedTradingEngine {
     }
 
     // OPUS 4.1: Ultra-fast price monitoring for DIP detection with zero delays
-    async monitorPricesForDIP(tokenAddresses, callback, interval = 250) { // 250ms for ultra-speed
+    async monitorPricesForDIP(tokenAddresses, callback, interval = 100) { // 100ms for ultra-speed (reduced from 250)
         const priceCache = new Map();
         
         const monitor = async () => {
@@ -422,7 +422,7 @@ class AdvancedTradingEngine {
     }
 
     // OPUS 4.1: Ultra-fast continuous DIP monitoring and execution with zero delays
-    async startUltraFastDIPBot(wallet, tokenAddress, amountInWLD, dipThreshold = 3, interval = 500) {
+    async startUltraFastDIPBot(wallet, tokenAddress, amountInWLD, dipThreshold = 3, interval = 200) { // 200ms for ultra-speed (reduced from 500)
         console.log(`🚀 Starting OPUS 4.1 Ultra-Fast DIP Bot for ${tokenAddress}`);
         console.log(`⚡ Monitoring every ${interval}ms with ${dipThreshold}% dip threshold`);
         console.log(`🔥 Ultra-fast execution with ${this.ULTRA_FAST_GAS_PRICE} gwei gas price`);
@@ -450,7 +450,7 @@ class AdvancedTradingEngine {
     }
 
     // OPUS 4.1: Ultra-fast price monitoring with zero delays
-    async monitorPriceChanges(tokenAddresses, callback, interval = 500) { // 500ms for ultra-speed
+    async monitorPriceChanges(tokenAddresses, callback, interval = 200) { // 200ms for ultra-speed (reduced from 500)
         const monitor = async () => {
             try {
                 // OPUS 4.1: Get all prices in parallel
