@@ -1,9 +1,9 @@
 {
-  "timestamp": 1755265812665,
+  "timestamp": 1755280789356,
   "results": [
     {
       "endpointName": "QuickNode (cea629fe80a05630338845dc1fd58f8da329b083)",
-      "averageResponseTime": 18.22222222222222,
+      "averageResponseTime": 19.555555555555557,
       "isHealthy": true,
       "successfulTests": 9,
       "failedTests": 0,
@@ -11,7 +11,7 @@
     },
     {
       "endpointName": "Alchemy Public",
-      "averageResponseTime": 45.666666666666664,
+      "averageResponseTime": 47.666666666666664,
       "isHealthy": true,
       "successfulTests": 9,
       "failedTests": 0,
@@ -19,7 +19,7 @@
     },
     {
       "endpointName": "DRPC Public",
-      "averageResponseTime": 66.77777777777777,
+      "averageResponseTime": 270.3333333333333,
       "isHealthy": true,
       "successfulTests": 9,
       "failedTests": 0,
