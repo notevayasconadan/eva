@@ -23,9 +23,8 @@ class WorldchainTradingBot {
         this.walletsPath = path.join(__dirname, 'wallets.json');
         this.tokensPath = path.join(__dirname, 'discovered_tokens.json');
         
-        // Enhanced RPC Fallback System
-        this.rpcManager = this.initializeRPCManager();
-        this.provider = this.rpcManager.getCurrentProvider();
+        // Ultra-Fast RPC System (No Health Checks)
+        this.provider = new ethers.JsonRpcProvider(process.env.RPC_URL || 'https://worldchain-mainnet.g.alchemy.com/public');
         
         this.config = this.loadConfig();
         this.wallets = this.loadWallets();
